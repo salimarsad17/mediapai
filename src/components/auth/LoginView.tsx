@@ -12,44 +12,54 @@ import {
   Image as ImageIcon,
   Sun,
   Camera,
+  Shield,
   Layers,
-  BookMarked,
-  FileCheck,
+  Award,
 } from 'lucide-react';
 
 const SCHOOL_WALLPAPERS = [
   {
-    id: 'gedung-utama',
-    title: 'Gedung Utama Terang',
-    subtitle: 'Arsitektur modern, bersih & langit biru cerah',
+    id: 'sekolah-masjid-1',
+    title: 'Gedung Sekolah & Masjid Megah',
+    subtitle: 'Arsitektur kampus modern dengan kubah masjid dan menara asri',
+    url: 'https://images.unsplash.com/photo-1590076215667-875d4ef2d7ee?auto=format&fit=crop&w=2000&q=85',
+  },
+  {
+    id: 'sekolah-masjid-2',
+    title: 'Masjid Kampus & Halaman Hijau',
+    subtitle: 'Suasana lingkungan sekolah religius, bersih, dan terang',
+    url: 'https://images.unsplash.com/photo-1542816417-0983c9c9ad53?auto=format&fit=crop&w=2000&q=85',
+  },
+  {
+    id: 'gedung-modern',
+    title: 'Gedung Pembelajaran Modern',
+    subtitle: 'Gedung sekolah SMP cerah dinaungi langit biru',
     url: 'https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&w=2000&q=85',
-  },
-  {
-    id: 'halaman-asri',
-    title: 'Halaman Sekolah Asri',
-    subtitle: 'Taman hijau rindang & gedung sekolah megah',
-    url: 'https://images.unsplash.com/photo-1580582932707-520aed937b7b?auto=format&fit=crop&w=2000&q=85',
-  },
-  {
-    id: 'kampus-modern',
-    title: 'Paviliun Belajar Modern',
-    subtitle: 'Suasana lingkungan sekolah terang dan nyaman',
-    url: 'https://images.unsplash.com/photo-1541829070764-84a7d30dd3f3?auto=format&fit=crop&w=2000&q=85',
   },
 ];
 
 export const LoginView: React.FC = () => {
-  const { login, loginAsUser, users, schoolConfig } = useLms();
+  const { login, loginAsUser, users, schoolProfile } = useLms();
 
-  // ONLY Guru and Siswa - No Admin
-  const [selectedRole, setSelectedRole] = useState<'siswa' | 'guru'>('siswa');
-  const [identifier, setIdentifier] = useState('siswa7');
+  // ONLY Guru and Siswa - Strictly no admin
+  const [selectedRole, setSelectedRole] = useState<'siswa' | 'guru'>('guru');
+  const [identifier, setIdentifier] = useState('guru_pai');
   const [password, setPassword] = useState('123456');
   const [errorMessage, setErrorMessage] = useState('');
   const [activeWallpaperIndex, setActiveWallpaperIndex] = useState(0);
   const [isUltraBright, setIsUltraBright] = useState(false);
 
   const currentWallpaper = SCHOOL_WALLPAPERS[activeWallpaperIndex];
+
+  const handleRoleChange = (role: 'siswa' | 'guru') => {
+    setSelectedRole(role);
+    setErrorMessage('');
+    if (role === 'guru') {
+      setIdentifier('guru_pai');
+    } else {
+      setIdentifier('siswa7');
+    }
+  };
 
   const handleManualLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,21 +74,20 @@ export const LoginView: React.FC = () => {
       return;
     }
 
-    const result = login(identifier, selectedRole);
+    const result = login(identifier, selectedRole, password);
     if (!result.success) {
       setErrorMessage(result.message || 'Login gagal. Data tidak ditemukan.');
     }
   };
 
-  // Demo accounts for quick testing: GURU PAI & SISWA ONLY
   const guruPai = users.find(u => u.role === 'guru' && u.username === 'guru_pai') || users.find(u => u.role === 'guru');
   const siswaKls7 = users.find(u => u.role === 'siswa' && u.gradeLevel === '7');
   const siswaKls8 = users.find(u => u.role === 'siswa' && u.gradeLevel === '8');
   const siswaKls9 = users.find(u => u.role === 'siswa' && u.gradeLevel === '9');
 
   return (
-    <div className="relative min-h-[calc(100vh-64px)] py-8 px-4 sm:px-6 flex flex-col justify-center items-center overflow-hidden">
-      {/* Background Image: Bright, Crisp & Clear School Campus Building */}
+    <div className="relative min-h-screen py-6 px-4 sm:px-6 flex flex-col justify-center items-center overflow-hidden">
+      {/* Background Image: School with Mosque (Cerah, Jelas, Megah) */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
         <img
           src={currentWallpaper.url}
@@ -90,27 +99,40 @@ export const LoginView: React.FC = () => {
           }`}
           referrerPolicy="no-referrer"
         />
-        {/* Crisp Translucent Overlay */}
+        {/* Crisp Translucent Blue Overlay */}
         <div
           className={`absolute inset-0 transition-colors duration-500 ${
             isUltraBright
-              ? 'bg-slate-900/25 backdrop-blur-[0.5px]'
-              : 'bg-gradient-to-tr from-slate-950/45 via-slate-900/30 to-emerald-950/35 backdrop-blur-[1px]'
+              ? 'bg-blue-950/30 backdrop-blur-[0.5px]'
+              : 'bg-gradient-to-tr from-slate-950/75 via-blue-950/60 to-indigo-950/70 backdrop-blur-[1px]'
           }`}
         />
       </div>
 
+      {/* Running Marquee Text: “Guru kreatif Siswa Aktif” */}
+      <div className="relative z-20 w-full max-w-5xl mb-3 overflow-hidden bg-gradient-to-r from-blue-700 via-indigo-600 to-blue-800 text-white rounded-xl shadow-lg border border-blue-400/40 py-2 px-4 flex items-center">
+        <div className="shrink-0 flex items-center gap-2 pr-4 border-r border-blue-400/30 text-xs font-black uppercase tracking-wider text-amber-300">
+          <Sparkles className="w-4 h-4 text-amber-300 animate-spin" />
+          <span>MOTTO PAI:</span>
+        </div>
+        <div className="overflow-hidden flex-1 relative whitespace-nowrap pl-4">
+          <div className="animate-running-marquee text-xs sm:text-sm font-bold tracking-wide">
+            🌟 GURU KREATIF • UPT SMPN 2 REBANG TANGKAS • MEDIA PAI 🌟 • Siswa Aktif, Berakhlak Mulia & Unggul Iptek-Imtaq • Pembelajaran Digital Terintegrasi 🌟 GURU KREATIF • UPT SMPN 2 REBANG TANGKAS • MEDIA PAI 🌟
+          </div>
+        </div>
+      </div>
+
       {/* Top Floating Badge & Wallpaper Switcher Bar */}
-      <div className="relative z-10 w-full max-w-5xl mb-4 flex flex-wrap items-center justify-between gap-2.5 bg-slate-900/80 backdrop-blur-md text-white py-2 px-3.5 rounded-xl border border-white/20 shadow-lg text-xs">
+      <div className="relative z-10 w-full max-w-5xl mb-4 flex flex-wrap items-center justify-between gap-2.5 bg-slate-900/85 backdrop-blur-md text-white py-2 px-3.5 rounded-xl border border-blue-400/30 shadow-lg text-xs">
         <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded-lg bg-emerald-500/30 text-emerald-300 flex items-center justify-center">
+          <div className="w-6 h-6 rounded-lg bg-blue-500/30 text-blue-300 flex items-center justify-center">
             <Camera className="w-3.5 h-3.5" />
           </div>
-          <span className="font-semibold text-slate-200 hidden sm:inline">
-            Foto Gedung Kampus Sekolah:
+          <span className="font-semibold text-slate-300 hidden sm:inline">
+            Latar Kampus Sekolah & Masjid:
           </span>
-          <span className="font-bold text-emerald-300">
-            {schoolConfig.name} ({currentWallpaper.title})
+          <span className="font-bold text-amber-300">
+            {schoolProfile.name}
           </span>
         </div>
 
@@ -124,7 +146,7 @@ export const LoginView: React.FC = () => {
               onClick={() => setActiveWallpaperIndex(idx)}
               className={`px-2.5 py-1 rounded-lg font-medium transition text-[11px] flex items-center gap-1 ${
                 activeWallpaperIndex === idx
-                  ? 'bg-emerald-600 text-white shadow-xs font-bold ring-1 ring-white/40'
+                  ? 'bg-blue-600 text-white shadow-xs font-bold ring-1 ring-white/40'
                   : 'bg-white/10 text-slate-300 hover:bg-white/20 hover:text-white'
               }`}
               title={wp.subtitle}
@@ -146,210 +168,199 @@ export const LoginView: React.FC = () => {
             title="Tingkatkan kecerahan background sekolah"
           >
             <Sun className="w-3 h-3" />
-            <span>{isUltraBright ? 'Mode Terang Aktif' : 'Paling Terang'}</span>
+            <span>{isUltraBright ? 'Terang Maksimal' : 'Mode Terang'}</span>
           </button>
         </div>
       </div>
 
       {/* Main Content Grid */}
-      <div className="relative z-10 w-full max-w-5xl grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-center">
-        {/* Left Column: School Information & Portal Description */}
-        <div className="lg:col-span-6 bg-white/95 backdrop-blur-md rounded-2xl border border-white/80 shadow-xl p-6 sm:p-7 space-y-5 text-slate-800">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-100/90 text-emerald-900 text-xs font-bold border border-emerald-200">
-            <BookMarked className="w-4 h-4 text-emerald-700" />
-            <span>MEDIA PEMBELAJARAN PAI & CBT</span>
-          </div>
-
-          <div>
-            <h1 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight leading-none">
-              MEDIA PAI
-            </h1>
-            <p className="text-sm font-semibold text-emerald-700 mt-1">
-              Pendidikan Agama Islam & Budi Pekerti • {schoolConfig.name}
-            </p>
-            <p className="mt-2.5 text-xs sm:text-sm text-slate-600 leading-relaxed">
-              Sistem pembelajaran digital interaktif, bank materi PAI (Al-Qur'an, Hadits, Fiqih, Akidah Akhlak, SKI),
-              serta Asesmen Sumatif CBT berbasis komputer untuk siswa <strong className="text-slate-900 font-semibold">Kelas 7, Kelas 8, dan Kelas 9</strong>.
-            </p>
-          </div>
-
-          {/* Key Features List */}
-          <div className="space-y-2.5 pt-1">
-            <div className="flex items-start gap-2.5">
-              <div className="w-5 h-5 rounded-md bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5">
-                <CheckCircle2 className="w-3.5 h-3.5" />
-              </div>
-              <p className="text-xs text-slate-700 leading-snug">
-                <strong className="font-semibold text-slate-900">Portal Guru & Siswa:</strong> Akses materi interaktif, latihan soal, dan konsultasi tanya jawab langsung.
+      <div className="relative z-10 w-full max-w-5xl grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+        {/* Left Column: School Identity, Animated Basmalah & Features */}
+        <div className="lg:col-span-6 bg-slate-900/90 backdrop-blur-md rounded-2xl border border-blue-500/40 shadow-2xl p-6 sm:p-7 space-y-4 text-white flex flex-col justify-between">
+          <div className="space-y-4">
+            {/* Animated Basmalah in Yellow-Gold & Glowing White */}
+            <div className="text-center py-2 px-3 rounded-xl bg-blue-950/60 border border-amber-400/30">
+              <p
+                className="text-2xl sm:text-3xl font-serif font-bold tracking-wider animate-gold-white-glow select-none"
+                dir="rtl"
+                lang="ar"
+              >
+                بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
+              </p>
+              <p className="text-[11px] text-amber-200/90 font-medium mt-1">
+                "Dengan menyebut nama Allah Yang Maha Pengasih lagi Maha Penyayang"
               </p>
             </div>
-            <div className="flex items-start gap-2.5">
-              <div className="w-5 h-5 rounded-md bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5">
-                <CheckCircle2 className="w-3.5 h-3.5" />
+
+            <div>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-600/30 text-blue-200 text-xs font-bold border border-blue-400/30 mb-2">
+                <BookOpen className="w-3.5 h-3.5 text-blue-400" />
+                <span>APLIKASI GURU SMP MAPEL PAI</span>
               </div>
-              <p className="text-xs text-slate-700 leading-snug">
-                <strong className="font-semibold text-slate-900">CBT Engine Terproteksi:</strong> Token ujian resmi, timer countdown, dan deteksi anti-kecurangan.
+              <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight leading-tight">
+                MEDIA PAI
+              </h1>
+              <p
+                className="font-bold text-yellow-400 mt-1"
+                style={{
+                  fontSize: '12px',
+                  fontFamily: '"Arial Narrow", Arial, sans-serif',
+                  color: '#facc15',
+                  fontWeight: 'bold',
+                }}
+              >
+                Sadiqul Alim, S.Pd.I.,M.Pd
+              </p>
+              <p className="text-xs font-semibold text-blue-300 mt-1">
+                Guru Pendidikan Agama Islam • {schoolProfile.name}
+              </p>
+              <p className="mt-2 text-xs sm:text-sm text-slate-300 leading-relaxed">
+                Platform pembelajaran interaktif, perangkat ajar Kurikulum Merdeka, bahan ajar AI, jurnal guru, jurnal sikap, absensi, rekab nilai terintegrasi, dan master pustaka Islam.
               </p>
             </div>
-            <div className="flex items-start gap-2.5">
-              <div className="w-5 h-5 rounded-md bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5">
-                <CheckCircle2 className="w-3.5 h-3.5" />
-              </div>
-              <p className="text-xs text-slate-700 leading-snug">
-                <strong className="font-semibold text-slate-900">Rekapitulasi Nilai & KKM:</strong> Analisis butir soal otomatis, rekapitulasi nilai per kelas, dan transparansi evaluasi.
+
+            {/* School Vision Badge */}
+            <div className="p-3 rounded-xl bg-blue-900/40 border border-blue-400/30">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-amber-300 block mb-0.5">
+                VISI SEKOLAH:
+              </span>
+              <p className="text-sm font-bold text-white italic">
+                “{schoolProfile.visi}”
               </p>
+            </div>
+
+            {/* Key Features */}
+            <div className="space-y-2 text-xs text-slate-300">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span>Perangkat Ajar (CP, ATP, Modul Ajar, KKTP) & Bahan Ajar AI</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span>Jurnal Guru, Jurnal Sikap, Absen 6 Bulan, & Bimbingan Guru Wali</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span>Rekab Nilai Paralel Kelas 7, 8, 9 (KKM 75: Merah & Hitam Otomatis)</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span>Masterku: Al-Qur'an 30 Juz Audio, Hadits 5 Perawi, Buku CP 2026, & Kisah Teladan</span>
+              </div>
             </div>
           </div>
 
-          {/* Quick Demo Login Preset Buttons - GURU & SISWA ONLY */}
-          <div className="pt-3.5 border-t border-slate-200">
-            <div className="flex items-center gap-1.5 mb-2 text-xs font-bold text-slate-700">
-              <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-              <span>1-KLIK LOGIN CEPAT DEMO:</span>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+          {/* Quick Demo 1-Click Buttons */}
+          <div className="pt-4 border-t border-blue-500/20">
+            <span className="text-[11px] font-bold text-amber-300 flex items-center gap-1.5 mb-2">
+              <Sparkles className="w-3.5 h-3.5" /> 1-KLIK LOGIN DEMO (GURU & SISWA):
+            </span>
+            <div className="grid grid-cols-2 gap-2 text-xs">
               {guruPai && (
                 <button
                   type="button"
-                  id="quick-demo-guru-pai-btn"
+                  id="btn-quick-login-guru"
                   onClick={() => loginAsUser(guruPai)}
-                  className="flex items-center justify-between p-2.5 rounded-lg bg-emerald-50/80 border border-emerald-200 hover:border-emerald-500 hover:bg-emerald-100 text-left transition group sm:col-span-2 shadow-2xs"
+                  className="col-span-2 flex items-center justify-between p-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold transition shadow-md"
                 >
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-xs shrink-0">
+                  <div className="flex items-center gap-2 text-left">
+                    <div className="w-7 h-7 rounded-lg bg-blue-800 text-white flex items-center justify-center font-bold text-xs">
                       GP
                     </div>
                     <div>
-                      <span className="font-bold text-emerald-950 block group-hover:text-emerald-800">
-                        Login Guru PAI
-                      </span>
-                      <span className="text-[11px] text-emerald-700">
-                        {guruPai.name} (NIP: {guruPai.identifier})
-                      </span>
+                      <span className="block text-xs">Login Guru PAI</span>
+                      <span className="text-[10px] text-blue-200 font-normal">{guruPai.name}</span>
                     </div>
                   </div>
-                  <ArrowRight className="w-4 h-4 text-emerald-600 group-hover:translate-x-1 transition" />
+                  <ArrowRight className="w-4 h-4" />
                 </button>
               )}
-
               {siswaKls7 && (
                 <button
                   type="button"
-                  id="quick-demo-siswa7-btn"
+                  id="btn-quick-login-siswa7"
                   onClick={() => loginAsUser(siswaKls7)}
-                  className="flex items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-200 hover:border-blue-400 hover:bg-blue-50 text-left transition group"
+                  className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 font-medium text-left transition"
                 >
-                  <div>
-                    <span className="font-bold text-slate-900 block group-hover:text-blue-700">
-                      Siswa Kelas 7 (7A)
-                    </span>
-                    <span className="text-[10px] text-slate-500">{siswaKls7.name}</span>
-                  </div>
-                  <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-blue-600 transition" />
+                  <span className="font-bold block text-xs text-white">Siswa Kls 7 (7A)</span>
+                  <span className="text-[10px] text-slate-400">{siswaKls7.name}</span>
                 </button>
               )}
-
               {siswaKls8 && (
                 <button
                   type="button"
-                  id="quick-demo-siswa8-btn"
+                  id="btn-quick-login-siswa8"
                   onClick={() => loginAsUser(siswaKls8)}
-                  className="flex items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-200 hover:border-blue-400 hover:bg-blue-50 text-left transition group"
+                  className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 font-medium text-left transition"
                 >
-                  <div>
-                    <span className="font-bold text-slate-900 block group-hover:text-blue-700">
-                      Siswa Kelas 8 (8B)
-                    </span>
-                    <span className="text-[10px] text-slate-500">{siswaKls8.name}</span>
-                  </div>
-                  <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-blue-600 transition" />
-                </button>
-              )}
-
-              {siswaKls9 && (
-                <button
-                  type="button"
-                  id="quick-demo-siswa9-btn"
-                  onClick={() => loginAsUser(siswaKls9)}
-                  className="flex items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-200 hover:border-blue-400 hover:bg-blue-50 text-left transition group sm:col-span-2"
-                >
-                  <div>
-                    <span className="font-bold text-slate-900 block group-hover:text-blue-700">
-                      Siswa Kelas 9 (9A - Persiapan Ujian Akhir)
-                    </span>
-                    <span className="text-[10px] text-slate-500">{siswaKls9.name} (NISN: {siswaKls9.identifier})</span>
-                  </div>
-                  <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-blue-600 transition" />
+                  <span className="font-bold block text-xs text-white">Siswa Kls 8 (8B)</span>
+                  <span className="text-[10px] text-slate-400">{siswaKls8.name}</span>
                 </button>
               )}
             </div>
           </div>
         </div>
 
-        {/* Right Column: Interactive Login Form (ONLY GURU & SISWA) */}
-        <div className="lg:col-span-6">
-          <div className="bg-white/95 backdrop-blur-md rounded-2xl border border-white/80 shadow-xl p-6 sm:p-7">
-            {/* Role Switcher Tabs - Strictly Siswa and Guru */}
-            <div className="mb-5">
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
-                Pilih Peran Masuk
-              </label>
-              <div className="grid grid-cols-2 gap-2 p-1.5 bg-slate-100 rounded-xl">
-                <button
-                  type="button"
-                  id="role-tab-siswa"
-                  onClick={() => {
-                    setSelectedRole('siswa');
-                    setIdentifier('siswa7');
-                    setPassword('123456');
-                    setErrorMessage('');
-                  }}
-                  className={`flex items-center justify-center gap-2 py-3 px-3 rounded-lg text-xs font-bold transition ${
-                    selectedRole === 'siswa'
-                      ? 'bg-blue-600 text-white shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
-                  }`}
-                >
-                  <GraduationCap className="w-4 h-4" />
-                  <span>Siswa (Peserta Didik)</span>
-                </button>
-
-                <button
-                  type="button"
-                  id="role-tab-guru"
-                  onClick={() => {
-                    setSelectedRole('guru');
-                    setIdentifier('guru_pai');
-                    setPassword('123456');
-                    setErrorMessage('');
-                  }}
-                  className={`flex items-center justify-center gap-2 py-3 px-3 rounded-lg text-xs font-bold transition ${
-                    selectedRole === 'guru'
-                      ? 'bg-emerald-600 text-white shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
-                  }`}
-                >
-                  <BookOpen className="w-4 h-4" />
-                  <span>Guru (Pengampu PAI)</span>
-                </button>
+        {/* Right Column: Dedicated Login Card (Guru & Siswa ONLY) */}
+        <div className="lg:col-span-6 bg-white/95 backdrop-blur-md rounded-2xl border border-blue-200 shadow-2xl p-6 sm:p-7 flex flex-col justify-between">
+          <div>
+            {/* Header Login */}
+            <div className="text-center pb-4 border-b border-slate-200">
+              <div className="w-12 h-12 mx-auto rounded-2xl bg-gradient-to-tr from-blue-700 to-indigo-600 text-white flex items-center justify-center shadow-lg shadow-blue-500/30 mb-2">
+                <BookOpen className="w-6 h-6" />
               </div>
+              <h2 className="text-xl sm:text-2xl font-black text-slate-900">
+                Masuk ke Portal Media PAI
+              </h2>
+              <p className="text-xs text-slate-500 mt-1">
+                Silakan pilih peran untuk mengakses akun Anda
+              </p>
             </div>
 
-            {/* Error Message */}
+            {/* Role Tabs: GURU & SISWA ONLY */}
+            <div className="mt-5 p-1 bg-slate-100 rounded-xl grid grid-cols-2 gap-1 border border-slate-200">
+              <button
+                type="button"
+                id="tab-role-guru"
+                onClick={() => handleRoleChange('guru')}
+                className={`py-2 px-3 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 ${
+                  selectedRole === 'guru'
+                    ? 'bg-blue-600 text-white shadow-sm ring-1 ring-blue-700'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <BookOpen className="w-3.5 h-3.5" />
+                <span>Guru (Pengampu PAI)</span>
+              </button>
+
+              <button
+                type="button"
+                id="tab-role-siswa"
+                onClick={() => handleRoleChange('siswa')}
+                className={`py-2 px-3 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 ${
+                  selectedRole === 'siswa'
+                    ? 'bg-blue-600 text-white shadow-sm ring-1 ring-blue-700'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <GraduationCap className="w-3.5 h-3.5" />
+                <span>Siswa (Peserta Didik)</span>
+              </button>
+            </div>
+
+            {/* Error Message Alert */}
             {errorMessage && (
-              <div className="mb-4 p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-start gap-2">
-                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+              <div className="mt-4 p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2 animate-shake">
+                <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
                 <span>{errorMessage}</span>
               </div>
             )}
 
             {/* Login Form */}
-            <form onSubmit={handleManualLogin} className="space-y-4">
+            <form onSubmit={handleManualLogin} className="mt-4 space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  {selectedRole === 'siswa'
-                    ? 'NISN Siswa / Username'
-                    : 'NIP Guru / Username'}
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                  {selectedRole === 'guru' ? 'NIP / Username Guru' : 'NISN / Username Siswa'}
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
@@ -357,23 +368,19 @@ export const LoginView: React.FC = () => {
                   </div>
                   <input
                     type="text"
-                    id="input-identifier"
+                    id="login-identifier-input"
                     value={identifier}
                     onChange={e => setIdentifier(e.target.value)}
-                    placeholder={
-                      selectedRole === 'siswa'
-                        ? 'Contoh: 0081234567 atau siswa7'
-                        : 'Contoh: 198205142008011015 atau guru_pai'
-                    }
-                    className="w-full pl-9 pr-3 py-2.5 text-sm bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-slate-900 transition"
+                    placeholder={selectedRole === 'guru' ? 'Masukkan NIP atau guru_pai' : 'Masukkan NISN atau siswa7'}
+                    className="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition"
                     required
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Kata Sandi
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                  Password
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
@@ -381,67 +388,33 @@ export const LoginView: React.FC = () => {
                   </div>
                   <input
                     type="password"
-                    id="input-password"
+                    id="login-password-input"
                     value={password}
                     onChange={e => setPassword(e.target.value)}
-                    placeholder="Masukkan kata sandi"
-                    className="w-full pl-9 pr-3 py-2.5 text-sm bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-slate-900 transition"
+                    placeholder="Masukkan password"
+                    className="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition"
+                    required
                   />
                 </div>
               </div>
 
-              {selectedRole === 'siswa' && (
-                <div className="p-2.5 rounded-xl bg-blue-50/80 border border-blue-100 text-blue-900 text-xs flex items-center justify-between">
-                  <span className="text-[11px] text-blue-700">Tingkat Kelas:</span>
-                  <div className="flex gap-1.5 font-bold">
-                    <button
-                      type="button"
-                      onClick={() => setIdentifier('siswa7')}
-                      className={`px-2 py-0.5 rounded text-[11px] ${identifier === 'siswa7' ? 'bg-blue-600 text-white' : 'bg-white text-blue-700 border border-blue-200'}`}
-                    >
-                      Kelas 7
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setIdentifier('siswa8')}
-                      className={`px-2 py-0.5 rounded text-[11px] ${identifier === 'siswa8' ? 'bg-blue-600 text-white' : 'bg-white text-blue-700 border border-blue-200'}`}
-                    >
-                      Kelas 8
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setIdentifier('siswa9')}
-                      className={`px-2 py-0.5 rounded text-[11px] ${identifier === 'siswa9' ? 'bg-blue-600 text-white' : 'bg-white text-blue-700 border border-blue-200'}`}
-                    >
-                      Kelas 9
-                    </button>
-                  </div>
-                </div>
-              )}
-
               <button
                 type="submit"
-                id="submit-login-btn"
-                className={`w-full py-3 px-4 rounded-xl text-white font-bold text-sm shadow-md transition flex items-center justify-center gap-2 mt-2 ${
-                  selectedRole === 'siswa'
-                    ? 'bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300'
-                    : 'bg-emerald-600 hover:bg-emerald-700 focus:ring-4 focus:ring-emerald-300'
-                }`}
+                id="btn-submit-login"
+                className="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold rounded-xl text-sm shadow-md shadow-blue-500/20 transition flex items-center justify-center gap-2 cursor-pointer"
               >
-                <span>
-                  Masuk Sebagai {selectedRole === 'siswa' ? 'Siswa' : 'Guru PAI'}
-                </span>
+                <span>Masuk Sekarang</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </form>
+          </div>
 
-            <div className="mt-5 pt-4 border-t border-slate-200 text-center">
-              <p className="text-[11px] text-slate-500">
-                Aplikasi Resmi <strong>Media PAI</strong> • {schoolConfig.name}
-                <br />
-                Tahun Ajaran {schoolConfig.academicYear} (Semester {schoolConfig.currentSemester})
-              </p>
-            </div>
+          {/* Footer info inside card */}
+          <div className="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
+            <span className="flex items-center gap-1">
+              <Shield className="w-3.5 h-3.5 text-blue-600" /> Keamanan Terenkripsi
+            </span>
+            <span>UPT SMPN 2 Rebang Tangkas</span>
           </div>
         </div>
       </div>

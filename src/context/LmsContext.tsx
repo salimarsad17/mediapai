@@ -1,236 +1,326 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { User, Exam, ExamSubmission, SchoolConfig, UserRole, GradeLevel, PaiModule, ChatMessage } from '../types';
 import {
-  INITIAL_USERS,
-  INITIAL_EXAMS,
-  INITIAL_SUBMISSIONS,
-  INITIAL_SCHOOL_CONFIG,
-  INITIAL_PAI_MODULES,
+  User,
+  UserRole,
+  GradeLevel,
+  SemesterType,
+  SchoolProfile,
+  GuruItem,
+  KelasItem,
+  SiswaItem,
+  PerangkatAjarItem,
+  BahanAjarItem,
+  JurnalGuruItem,
+  JurnalSikapItem,
+  AbsenSiswaItem,
+  GuruWaliItem,
+  RekapNilaiItem,
+  PengumumanItem,
+  ChatMessage,
+} from '../types';
+import {
+  INITIAL_SCHOOL_PROFILE,
+  INITIAL_GURU_LIST,
+  INITIAL_KELAS_LIST,
+  INITIAL_SISWA_LIST,
+  INITIAL_USERS_AUTH,
+  INITIAL_PERANGKAT_AJAR,
+  INITIAL_BAHAN_AJAR,
+  INITIAL_JURNAL_GURU,
+  INITIAL_JURNAL_SIKAP,
+  INITIAL_ABSEN_SISWA,
+  INITIAL_GURU_WALI,
+  INITIAL_REKAP_NILAI,
+  INITIAL_PENGUMUMAN,
   INITIAL_CHAT_MESSAGES,
 } from '../data/initialData';
 
-export type MainNavTab = 'beranda' | 'materi' | 'ujian' | 'nilai' | 'pesan';
+export type GuruMenuType = 'beranda' | 'data' | 'perangkat' | 'rekap_nilai' | 'pesan' | 'masterku' | 'pengaturan';
+export type SiswaMenuType = 'beranda' | 'profil_siswa' | 'masterku' | 'tugas_siswa' | 'rekap_nilai' | 'pesan' | 'pengaturan';
 
 interface LmsContextType {
   currentUser: User | null;
   users: User[];
-  exams: Exam[];
-  submissions: ExamSubmission[];
-  schoolConfig: SchoolConfig;
-  modules: PaiModule[];
+  schoolProfile: SchoolProfile;
+  guruList: GuruItem[];
+  kelasList: KelasItem[];
+  siswaList: SiswaItem[];
+  perangkatAjarList: PerangkatAjarItem[];
+  bahanAjarList: BahanAjarItem[];
+  jurnalGuruList: JurnalGuruItem[];
+  jurnalSikapList: JurnalSikapItem[];
+  absenSiswaList: AbsenSiswaItem[];
+  guruWaliList: GuruWaliItem[];
+  rekapNilaiList: RekapNilaiItem[];
+  pengumumanList: PengumumanItem[];
   chatMessages: ChatMessage[];
-  
-  // Navigation & UI state
-  activeRole: UserRole | null;
-  activeView: string;
-  setActiveView: (view: string) => void;
-  activeTab: MainNavTab;
-  setActiveTab: (tab: MainNavTab) => void;
-  isSidebarOpen: boolean;
-  setIsSidebarOpen: (open: boolean) => void;
-  
-  // CBT Engine State
-  currentExam: Exam | null;
-  examAnswers: Record<string, string>;
-  examDoubtful: Record<string, boolean>;
-  examViolations: number;
-  examStartedAt: number | null;
-  lastCompletedSubmission: ExamSubmission | null;
-  
-  // Actions
-  login: (identifier: string, role?: UserRole) => { success: boolean; message?: string };
+
+  // Navigation
+  activeGuruMenu: GuruMenuType;
+  setActiveGuruMenu: (menu: GuruMenuType) => void;
+  activeGuruSubMenu: string;
+  setActiveGuruSubMenu: (sub: string) => void;
+
+  activeSiswaMenu: SiswaMenuType;
+  setActiveSiswaMenu: (menu: SiswaMenuType) => void;
+
+  selectedSemester: SemesterType;
+  setSelectedSemester: (sem: SemesterType) => void;
+  selectedGrade: GradeLevel | 'Semua';
+  setSelectedGrade: (g: GradeLevel | 'Semua') => void;
+
+  // Auth
+  login: (identifier: string, role?: UserRole, password?: string) => { success: boolean; message?: string };
   loginAsUser: (user: User) => void;
   logout: () => void;
   quickSwitchUser: (role: 'guru' | 'siswa', grade?: GradeLevel) => void;
-  
-  // Exam student actions
-  startExamWithToken: (examId: string, token: string) => { success: boolean; message?: string };
-  answerQuestion: (questionId: string, answer: string) => void;
-  toggleDoubtful: (questionId: string) => void;
-  registerExamViolation: () => void;
-  submitExam: () => ExamSubmission | null;
-  exitExamEarly: () => void;
-  viewSubmissionDetails: (submission: ExamSubmission) => void;
-  
-  // Guru exam actions
-  addExam: (exam: Omit<Exam, 'id' | 'createdAt'>) => Exam;
-  updateExam: (exam: Exam) => void;
-  deleteExam: (examId: string) => void;
-  togglePublishExam: (examId: string) => void;
-  
-  // PAI Module Actions
-  addModule: (module: Omit<PaiModule, 'id'>) => void;
-  deleteModule: (moduleId: string) => void;
-  
+  updateCurrentUserProfile: (data: Partial<User>) => void;
+
+  // CRUD Operations
+  updateSchoolProfile: (profile: Partial<SchoolProfile>) => void;
+
+  // Guru CRUD
+  addGuru: (item: Omit<GuruItem, 'id' | 'no'>) => void;
+  updateGuru: (item: GuruItem) => void;
+  deleteGuru: (id: string) => void;
+  importGuruBulk: (items: Omit<GuruItem, 'id' | 'no'>[]) => void;
+
+  // Kelas CRUD
+  addKelas: (item: Omit<KelasItem, 'id' | 'no'>) => void;
+  updateKelas: (item: KelasItem) => void;
+  deleteKelas: (id: string) => void;
+  importKelasBulk: (items: Omit<KelasItem, 'id' | 'no'>[]) => void;
+
+  // Siswa CRUD
+  addSiswa: (item: Omit<SiswaItem, 'id' | 'no'>) => void;
+  updateSiswa: (item: SiswaItem) => void;
+  deleteSiswa: (id: string) => void;
+  importSiswaBulk: (items: Omit<SiswaItem, 'id' | 'no'>[]) => void;
+
+  // Perangkat Ajar CRUD
+  addPerangkatAjar: (item: Omit<PerangkatAjarItem, 'id'>) => void;
+  updatePerangkatAjar: (item: PerangkatAjarItem) => void;
+  deletePerangkatAjar: (id: string) => void;
+
+  // Bahan Ajar AI CRUD & Kirim ke Siswa
+  addBahanAjar: (item: Omit<BahanAjarItem, 'id'>) => void;
+  updateBahanAjar: (item: BahanAjarItem) => void;
+  deleteBahanAjar: (id: string) => void;
+  toggleKirimKeSiswa: (id: string) => void;
+
+  // Jurnal Guru CRUD
+  addJurnalGuru: (item: Omit<JurnalGuruItem, 'id'>) => void;
+  updateJurnalGuru: (item: JurnalGuruItem) => void;
+  deleteJurnalGuru: (id: string) => void;
+
+  // Jurnal Sikap CRUD
+  addJurnalSikap: (item: Omit<JurnalSikapItem, 'id'>) => void;
+  updateJurnalSikap: (item: JurnalSikapItem) => void;
+  deleteJurnalSikap: (id: string) => void;
+
+  // Absen Siswa CRUD
+  addAbsenSiswa: (item: Omit<AbsenSiswaItem, 'id' | 'no'>) => void;
+  updateAbsenSiswa: (item: AbsenSiswaItem) => void;
+  deleteAbsenSiswa: (id: string) => void;
+
+  // Guru Wali CRUD
+  addGuruWali: (item: Omit<GuruWaliItem, 'id'>) => void;
+  updateGuruWali: (item: GuruWaliItem) => void;
+  deleteGuruWali: (id: string) => void;
+
+  // Rekap Nilai CRUD
+  addRekapNilai: (item: Omit<RekapNilaiItem, 'id' | 'no'>) => void;
+  updateRekapNilai: (item: RekapNilaiItem) => void;
+  deleteRekapNilai: (id: string) => void;
+
+  // Pengumuman CRUD
+  addPengumuman: (item: Omit<PengumumanItem, 'id'>) => void;
+  deletePengumuman: (id: string) => void;
+
   // Chat Actions
+  unreadMessagesCount: number;
   sendMessage: (recipientId: string, recipientName: string, message: string) => void;
   markMessageAsRead: (messageId: string) => void;
-  
-  // User Management
-  addUser: (user: Omit<User, 'id'>) => void;
-  updateUser: (user: User) => void;
-  deleteUser: (userId: string) => void;
-  
-  // Settings
-  updateSchoolConfig: (config: Partial<SchoolConfig>) => void;
+  markConversationAsRead: (partnerId: string) => void;
+  markAllMessagesAsRead: () => void;
+  simulateIncomingMessage: (senderRole?: UserRole) => void;
+
+  // Reset Data
   resetAllData: () => void;
 }
 
+const STORAGE_PREFIX = 'media_pai_smpn2_v1_';
+
 const LmsContext = createContext<LmsContextType | undefined>(undefined);
 
-const STORAGE_KEYS = {
-  USERS: 'media_pai_users_v4',
-  EXAMS: 'media_pai_exams_v4',
-  SUBMISSIONS: 'media_pai_submissions_v4',
-  SCHOOL: 'media_pai_school_v4',
-  MODULES: 'media_pai_modules_v4',
-  MESSAGES: 'media_pai_messages_v4',
-  ACTIVE_USER: 'media_pai_active_user_v4',
-};
-
 export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Load from localStorage or defaults
+  // Local storage loader helper
+  const loadStored = <T,>(key: string, fallback: T): T => {
+    try {
+      const item = localStorage.getItem(STORAGE_PREFIX + key);
+      return item ? JSON.parse(item) : fallback;
+    } catch {
+      return fallback;
+    }
+  };
+
+  const TARGET_NEW_GURU_NAME = 'Ust. Sadiqul Alim, S.Pd.I., M.Pd.';
+  const TARGET_NEW_GURU_PHOTO = 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=400&auto=format&fit=crop&q=80';
+
   const [users, setUsers] = useState<User[]>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEYS.USERS);
-      return saved ? JSON.parse(saved) : INITIAL_USERS;
-    } catch {
-      return INITIAL_USERS;
-    }
+    const loaded = loadStored<User[]>('users', INITIAL_USERS_AUTH);
+    return loaded.map(u =>
+      u.name?.includes('Ahmad Fauzi')
+        ? {
+            ...u,
+            name: TARGET_NEW_GURU_NAME,
+            avatar: TARGET_NEW_GURU_PHOTO,
+            email: 'sadiqul.alim@smpn2rebangtangkas.sch.id',
+          }
+        : u
+    );
   });
-
-  const [exams, setExams] = useState<Exam[]>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEYS.EXAMS);
-      return saved ? JSON.parse(saved) : INITIAL_EXAMS;
-    } catch {
-      return INITIAL_EXAMS;
-    }
-  });
-
-  const [submissions, setSubmissions] = useState<ExamSubmission[]>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEYS.SUBMISSIONS);
-      return saved ? JSON.parse(saved) : INITIAL_SUBMISSIONS;
-    } catch {
-      return INITIAL_SUBMISSIONS;
-    }
-  });
-
-  const [schoolConfig, setSchoolConfig] = useState<SchoolConfig>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEYS.SCHOOL);
-      return saved ? JSON.parse(saved) : INITIAL_SCHOOL_CONFIG;
-    } catch {
-      return INITIAL_SCHOOL_CONFIG;
-    }
-  });
-
-  const [modules, setModules] = useState<PaiModule[]>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEYS.MODULES);
-      return saved ? JSON.parse(saved) : INITIAL_PAI_MODULES;
-    } catch {
-      return INITIAL_PAI_MODULES;
-    }
-  });
-
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEYS.MESSAGES);
-      return saved ? JSON.parse(saved) : INITIAL_CHAT_MESSAGES;
-    } catch {
-      return INITIAL_CHAT_MESSAGES;
-    }
-  });
-
-  // Current logged in user (Default to Siswa Kelas 7 or saved)
   const [currentUser, setCurrentUser] = useState<User | null>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEYS.ACTIVE_USER);
-      if (saved) return JSON.parse(saved);
-      // Default to student 7A for immediate friendly experience
-      return INITIAL_USERS.find(u => u.username === 'siswa7') || INITIAL_USERS[2];
-    } catch {
-      return INITIAL_USERS[2];
+    const saved = loadStored<User | null>('active_user', null);
+    if (saved) {
+      if (saved.name?.includes('Ahmad Fauzi')) {
+        return {
+          ...saved,
+          name: TARGET_NEW_GURU_NAME,
+          avatar: TARGET_NEW_GURU_PHOTO,
+          email: 'sadiqul.alim@smpn2rebangtangkas.sch.id',
+        };
+      }
+      return saved;
     }
+    // Default logged in user: Guru PAI for instant full capability
+    return INITIAL_USERS_AUTH[0];
   });
 
-  const [activeView, setActiveView] = useState<string>('dashboard');
-  const [activeTab, setActiveTab] = useState<MainNavTab>('beranda');
-  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true);
+  const [schoolProfile, setSchoolProfile] = useState<SchoolProfile>(() => {
+    const loaded = loadStored<SchoolProfile>('school_profile', INITIAL_SCHOOL_PROFILE);
+    if (loaded && (loaded.npsn === '10806873' || !loaded.npsn)) {
+      return { ...loaded, npsn: INITIAL_SCHOOL_PROFILE.npsn };
+    }
+    return loaded;
+  });
+  const [guruList, setGuruList] = useState<GuruItem[]>(() => {
+    const loaded = loadStored<GuruItem[]>('guru_list', INITIAL_GURU_LIST);
+    return loaded.map(g =>
+      g.nama?.includes('Ahmad Fauzi')
+        ? { ...g, nama: TARGET_NEW_GURU_NAME, foto: TARGET_NEW_GURU_PHOTO }
+        : g
+    );
+  });
+  const [kelasList, setKelasList] = useState<KelasItem[]>(() => {
+    const loaded = loadStored<KelasItem[]>('kelas_list', INITIAL_KELAS_LIST);
+    return loaded.map(k =>
+      k.waliKelas?.includes('Ahmad Fauzi')
+        ? { ...k, waliKelas: TARGET_NEW_GURU_NAME }
+        : k
+    );
+  });
+  const [siswaList, setSiswaList] = useState<SiswaItem[]>(() =>
+    loadStored('siswa_list', INITIAL_SISWA_LIST)
+  );
+  const [perangkatAjarList, setPerangkatAjarList] = useState<PerangkatAjarItem[]>(() =>
+    loadStored('perangkat_ajar', INITIAL_PERANGKAT_AJAR)
+  );
+  const [bahanAjarList, setBahanAjarList] = useState<BahanAjarItem[]>(() =>
+    loadStored('bahan_ajar', INITIAL_BAHAN_AJAR)
+  );
+  const [jurnalGuruList, setJurnalGuruList] = useState<JurnalGuruItem[]>(() =>
+    loadStored('jurnal_guru', INITIAL_JURNAL_GURU)
+  );
+  const [jurnalSikapList, setJurnalSikapList] = useState<JurnalSikapItem[]>(() =>
+    loadStored('jurnal_sikap', INITIAL_JURNAL_SIKAP)
+  );
+  const [absenSiswaList, setAbsenSiswaList] = useState<AbsenSiswaItem[]>(() =>
+    loadStored('absen_siswa', INITIAL_ABSEN_SISWA)
+  );
+  const [guruWaliList, setGuruWaliList] = useState<GuruWaliItem[]>(() =>
+    loadStored('guru_wali', INITIAL_GURU_WALI)
+  );
+  const [rekapNilaiList, setRekapNilaiList] = useState<RekapNilaiItem[]>(() =>
+    loadStored('rekap_nilai', INITIAL_REKAP_NILAI)
+  );
+  const [pengumumanList, setPengumumanList] = useState<PengumumanItem[]>(() => {
+    const loaded = loadStored<PengumumanItem[]>('pengumuman', INITIAL_PENGUMUMAN);
+    return loaded.map(p =>
+      p.penulis?.includes('Ahmad Fauzi')
+        ? { ...p, penulis: `${TARGET_NEW_GURU_NAME} (Guru PAI)` }
+        : p
+    );
+  });
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>(() => {
+    const loaded = loadStored<ChatMessage[]>('chat_messages', INITIAL_CHAT_MESSAGES);
+    if (Array.isArray(loaded) && loaded.length > 0) {
+      const mapped = loaded.map(m => ({
+        ...m,
+        senderName: m.senderName?.includes('Ahmad Fauzi') ? TARGET_NEW_GURU_NAME : m.senderName,
+        senderAvatar: m.senderName?.includes('Ahmad Fauzi') ? TARGET_NEW_GURU_PHOTO : m.senderAvatar,
+        recipientName: m.recipientName?.includes('Ahmad Fauzi') ? TARGET_NEW_GURU_NAME : m.recipientName,
+        message: m.message?.replace(/Ustadz Fauzi/g, 'Ustadz Sadiqul Alim') || m.message,
+      }));
+      const existingIds = new Set(mapped.map(m => m.id));
+      const missingSeeds = INITIAL_CHAT_MESSAGES.filter(m => !existingIds.has(m.id));
+      if (missingSeeds.length > 0) {
+        return [...mapped, ...missingSeeds];
+      }
+      return mapped;
+    }
+    return INITIAL_CHAT_MESSAGES;
+  });
 
-  // CBT Exam Session State
-  const [currentExam, setCurrentExam] = useState<Exam | null>(null);
-  const [examAnswers, setExamAnswers] = useState<Record<string, string>>({});
-  const [examDoubtful, setExamDoubtful] = useState<Record<string, boolean>>({});
-  const [examViolations, setExamViolations] = useState<number>(0);
-  const [examStartedAt, setExamStartedAt] = useState<number | null>(null);
-  const [lastCompletedSubmission, setLastCompletedSubmission] = useState<ExamSubmission | null>(null);
+  // Nav states
+  const [activeGuruMenu, setActiveGuruMenu] = useState<GuruMenuType>('beranda');
+  const [activeGuruSubMenu, setActiveGuruSubMenu] = useState<string>('profil_sekolah');
+  const [activeSiswaMenu, setActiveSiswaMenu] = useState<SiswaMenuType>('beranda');
+
+  const [selectedSemester, setSelectedSemester] = useState<SemesterType>('Semester 1 (Ganjil)');
+  const [selectedGrade, setSelectedGrade] = useState<GradeLevel | 'Semua'>('Semua');
 
   // Sync to LocalStorage
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
+      localStorage.setItem(STORAGE_PREFIX + 'active_user', JSON.stringify(currentUser));
+      localStorage.setItem(STORAGE_PREFIX + 'users', JSON.stringify(users));
+      localStorage.setItem(STORAGE_PREFIX + 'school_profile', JSON.stringify(schoolProfile));
+      localStorage.setItem(STORAGE_PREFIX + 'guru_list', JSON.stringify(guruList));
+      localStorage.setItem(STORAGE_PREFIX + 'kelas_list', JSON.stringify(kelasList));
+      localStorage.setItem(STORAGE_PREFIX + 'siswa_list', JSON.stringify(siswaList));
+      localStorage.setItem(STORAGE_PREFIX + 'perangkat_ajar', JSON.stringify(perangkatAjarList));
+      localStorage.setItem(STORAGE_PREFIX + 'bahan_ajar', JSON.stringify(bahanAjarList));
+      localStorage.setItem(STORAGE_PREFIX + 'jurnal_guru', JSON.stringify(jurnalGuruList));
+      localStorage.setItem(STORAGE_PREFIX + 'jurnal_sikap', JSON.stringify(jurnalSikapList));
+      localStorage.setItem(STORAGE_PREFIX + 'absen_siswa', JSON.stringify(absenSiswaList));
+      localStorage.setItem(STORAGE_PREFIX + 'guru_wali', JSON.stringify(guruWaliList));
+      localStorage.setItem(STORAGE_PREFIX + 'rekap_nilai', JSON.stringify(rekapNilaiList));
+      localStorage.setItem(STORAGE_PREFIX + 'pengumuman', JSON.stringify(pengumumanList));
+      localStorage.setItem(STORAGE_PREFIX + 'chat_messages', JSON.stringify(chatMessages));
     } catch (e) {
-      console.warn('LocalStorage error:', e);
+      console.warn('Storage sync error:', e);
     }
-  }, [users]);
+  }, [
+    currentUser,
+    users,
+    schoolProfile,
+    guruList,
+    kelasList,
+    siswaList,
+    perangkatAjarList,
+    bahanAjarList,
+    jurnalGuruList,
+    jurnalSikapList,
+    absenSiswaList,
+    guruWaliList,
+    rekapNilaiList,
+    pengumumanList,
+    chatMessages,
+  ]);
 
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEYS.EXAMS, JSON.stringify(exams));
-    } catch (e) {
-      console.warn('LocalStorage error:', e);
-    }
-  }, [exams]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEYS.SUBMISSIONS, JSON.stringify(submissions));
-    } catch (e) {
-      console.warn('LocalStorage error:', e);
-    }
-  }, [submissions]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEYS.MODULES, JSON.stringify(modules));
-    } catch (e) {
-      console.warn('LocalStorage error:', e);
-    }
-  }, [modules]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEYS.MESSAGES, JSON.stringify(chatMessages));
-    } catch (e) {
-      console.warn('LocalStorage error:', e);
-    }
-  }, [chatMessages]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEYS.SCHOOL, JSON.stringify(schoolConfig));
-    } catch (e) {
-      console.warn('LocalStorage error:', e);
-    }
-  }, [schoolConfig]);
-
-  useEffect(() => {
-    try {
-      if (currentUser) {
-        localStorage.setItem(STORAGE_KEYS.ACTIVE_USER, JSON.stringify(currentUser));
-      } else {
-        localStorage.removeItem(STORAGE_KEYS.ACTIVE_USER);
-      }
-    } catch (e) {
-      console.warn('LocalStorage error:', e);
-    }
-  }, [currentUser]);
-
-  // Login handler - ONLY guru and siswa
-  const login = (identifier: string, role?: UserRole): { success: boolean; message?: string } => {
+  // Auth functions
+  const login = (identifier: string, role?: UserRole, inputPassword?: string): { success: boolean; message?: string } => {
     const cleanId = identifier.trim().toLowerCase();
     const foundUser = users.find(u => {
       const matchId = u.identifier.toLowerCase() === cleanId;
@@ -242,199 +332,280 @@ export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
 
     if (foundUser) {
+      if (inputPassword && inputPassword.trim()) {
+        const expectedPassword = foundUser.password || '123456';
+        if (inputPassword.trim() !== expectedPassword) {
+          return {
+            success: false,
+            message: 'Kata sandi salah. Silakan masukkan kata sandi yang sesuai dengan akun Anda (bawaan: 123456).',
+          };
+        }
+      }
       setCurrentUser(foundUser);
-      setActiveView('dashboard');
-      setActiveTab('beranda');
-      setCurrentExam(null);
+      if (foundUser.role === 'guru') {
+        setActiveGuruMenu('beranda');
+      } else {
+        setActiveSiswaMenu('beranda');
+      }
       return { success: true };
     }
 
     return {
       success: false,
-      message: 'NISN / NIP / Username tidak ditemukan. Silakan cek kembali atau gunakan tombol Login Cepat Demo.',
+      message: `Data login tidak ditemukan. Pastikan NIP / NISN atau Username benar untuk ${
+        role === 'guru' ? 'Guru' : 'Siswa'
+      }.`,
     };
   };
 
   const loginAsUser = (user: User) => {
     setCurrentUser(user);
-    setActiveView('dashboard');
-    setActiveTab('beranda');
-    setCurrentExam(null);
+    if (user.role === 'guru') {
+      setActiveGuruMenu('beranda');
+    } else {
+      setActiveSiswaMenu('beranda');
+    }
   };
 
   const logout = () => {
     setCurrentUser(null);
-    setCurrentExam(null);
-    setActiveView('login');
   };
 
-  // Quick switch for test evaluation - ONLY Guru and Siswa
   const quickSwitchUser = (role: 'guru' | 'siswa', grade?: GradeLevel) => {
-    let targetUser: User | undefined;
     if (role === 'guru') {
-      targetUser = users.find(u => u.role === 'guru');
-    } else if (role === 'siswa') {
-      if (grade) {
-        targetUser = users.find(u => u.role === 'siswa' && u.gradeLevel === grade);
-      }
-      if (!targetUser) {
-        targetUser = users.find(u => u.role === 'siswa');
-      }
-    }
-
-    if (targetUser) {
-      setCurrentUser(targetUser);
-      setCurrentExam(null);
-      setActiveView('dashboard');
+      const g = users.find(u => u.role === 'guru');
+      if (g) loginAsUser(g);
+    } else {
+      const s = users.find(u => u.role === 'siswa' && (grade ? u.gradeLevel === grade : true));
+      if (s) loginAsUser(s);
     }
   };
 
-  // Student CBT Methods
-  const startExamWithToken = (examId: string, token: string): { success: boolean; message?: string } => {
-    const exam = exams.find(e => e.id === examId);
-    if (!exam) {
-      return { success: false, message: 'Ujian tidak ditemukan.' };
-    }
-
-    if (!exam.isPublished) {
-      return { success: false, message: 'Ujian ini belum dipublikasikan oleh guru pengampu.' };
-    }
-
-    if (exam.token.trim().toUpperCase() !== token.trim().toUpperCase()) {
-      return { success: false, message: 'Token ujian salah! Silakan tanyakan kepada Guru PAI pengawas ujian.' };
-    }
-
-    // Check if student already submitted
-    if (currentUser) {
-      const alreadyDone = submissions.some(s => s.examId === examId && s.studentId === currentUser.id);
-      if (alreadyDone) {
-        return { success: false, message: 'Anda sudah menyelesaikan ujian ini sebelumnya.' };
-      }
-    }
-
-    setCurrentExam(exam);
-    setExamAnswers({});
-    setExamDoubtful({});
-    setExamViolations(0);
-    setExamStartedAt(Date.now());
-    setActiveView('exam-cbt');
-
-    return { success: true };
+  const updateCurrentUserProfile = (data: Partial<User>) => {
+    if (!currentUser) return;
+    const updated = { ...currentUser, ...data };
+    setCurrentUser(updated);
+    setUsers(prev => prev.map(u => (u.id === updated.id ? updated : u)));
   };
 
-  const answerQuestion = (questionId: string, answer: string) => {
-    setExamAnswers(prev => ({ ...prev, [questionId]: answer }));
+  // CRUD implementations
+  const updateSchoolProfile = (profile: Partial<SchoolProfile>) => {
+    setSchoolProfile(prev => ({ ...prev, ...profile }));
   };
 
-  const toggleDoubtful = (questionId: string) => {
-    setExamDoubtful(prev => ({ ...prev, [questionId]: !prev[questionId] }));
-  };
-
-  const registerExamViolation = () => {
-    setExamViolations(prev => prev + 1);
-  };
-
-  const submitExam = (): ExamSubmission | null => {
-    if (!currentExam || !currentUser) return null;
-
-    let correctCount = 0;
-    const totalQuestions = currentExam.questions.length;
-
-    currentExam.questions.forEach(q => {
-      if (examAnswers[q.id] === q.correctAnswer) {
-        correctCount++;
-      }
-    });
-
-    const calculatedScore = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0;
-    const isPassed = calculatedScore >= currentExam.passingGrade;
-    const timeSpentSeconds = examStartedAt ? Math.round((Date.now() - examStartedAt) / 1000) : 0;
-
-    const newSubmission: ExamSubmission = {
-      id: `sub-${Date.now()}`,
-      examId: currentExam.id,
-      examTitle: currentExam.title,
-      subject: currentExam.subject,
-      gradeLevel: currentExam.gradeLevel,
-      studentId: currentUser.id,
-      studentName: currentUser.name,
-      studentNisn: currentUser.identifier,
-      studentClass: currentUser.className || `${currentUser.gradeLevel || '7'}A`,
-      answers: { ...examAnswers },
-      doubtfulStatus: { ...examDoubtful },
-      totalQuestions,
-      correctAnswersCount: correctCount,
-      wrongAnswersCount: totalQuestions - correctCount,
-      score: calculatedScore,
-      isPassed,
-      startedAt: examStartedAt ? new Date(examStartedAt).toISOString() : new Date().toISOString(),
-      submittedAt: new Date().toISOString(),
-      violationCount: examViolations,
-      timeSpentSeconds,
+  // Guru CRUD
+  const addGuru = (item: Omit<GuruItem, 'id' | 'no'>) => {
+    const newItem: GuruItem = {
+      ...item,
+      id: `guru-${Date.now()}`,
+      no: guruList.length + 1,
     };
-
-    setSubmissions(prev => [newSubmission, ...prev.filter(s => !(s.examId === currentExam.id && s.studentId === currentUser.id))]);
-    setLastCompletedSubmission(newSubmission);
-    setCurrentExam(null);
-    setActiveView('exam-result');
-
-    return newSubmission;
+    setGuruList(prev => [...prev, newItem]);
+  };
+  const updateGuru = (item: GuruItem) => {
+    setGuruList(prev => prev.map(g => (g.id === item.id ? item : g)));
+  };
+  const deleteGuru = (id: string) => {
+    setGuruList(prev => prev.filter(g => g.id !== id).map((g, idx) => ({ ...g, no: idx + 1 })));
+  };
+  const importGuruBulk = (items: Omit<GuruItem, 'id' | 'no'>[]) => {
+    const formatted: GuruItem[] = items.map((it, idx) => ({
+      ...it,
+      id: `guru-imp-${Date.now()}-${idx}`,
+      no: guruList.length + idx + 1,
+    }));
+    setGuruList(prev => [...prev, ...formatted]);
   };
 
-  const exitExamEarly = () => {
-    setCurrentExam(null);
-    setActiveView('dashboard');
-    setActiveTab('ujian');
-  };
-
-  const viewSubmissionDetails = (submission: ExamSubmission) => {
-    setLastCompletedSubmission(submission);
-    setActiveView('exam-result');
-  };
-
-  // Guru exam management actions
-  const addExam = (examData: Omit<Exam, 'id' | 'createdAt'>): Exam => {
-    const newExam: Exam = {
-      ...examData,
-      id: `exam-pai-${Date.now()}`,
-      createdAt: new Date().toISOString(),
+  // Kelas CRUD
+  const addKelas = (item: Omit<KelasItem, 'id' | 'no'>) => {
+    const newItem: KelasItem = {
+      ...item,
+      id: `k-${Date.now()}`,
+      no: kelasList.length + 1,
     };
-    setExams(prev => [newExam, ...prev]);
-    return newExam;
+    setKelasList(prev => [...prev, newItem]);
+  };
+  const updateKelas = (item: KelasItem) => {
+    setKelasList(prev => prev.map(k => (k.id === item.id ? item : k)));
+  };
+  const deleteKelas = (id: string) => {
+    setKelasList(prev => prev.filter(k => k.id !== id).map((k, idx) => ({ ...k, no: idx + 1 })));
+  };
+  const importKelasBulk = (items: Omit<KelasItem, 'id' | 'no'>[]) => {
+    const formatted: KelasItem[] = items.map((it, idx) => ({
+      ...it,
+      id: `k-imp-${Date.now()}-${idx}`,
+      no: kelasList.length + idx + 1,
+    }));
+    setKelasList(prev => [...prev, ...formatted]);
   };
 
-  const updateExam = (updatedExam: Exam) => {
-    setExams(prev => prev.map(e => (e.id === updatedExam.id ? updatedExam : e)));
+  // Siswa CRUD
+  const addSiswa = (item: Omit<SiswaItem, 'id' | 'no'>) => {
+    const newItem: SiswaItem = {
+      ...item,
+      id: `s-${Date.now()}`,
+      no: siswaList.length + 1,
+    };
+    setSiswaList(prev => [...prev, newItem]);
+  };
+  const updateSiswa = (item: SiswaItem) => {
+    setSiswaList(prev => prev.map(s => (s.id === item.id ? item : s)));
+  };
+  const deleteSiswa = (id: string) => {
+    setSiswaList(prev => prev.filter(s => s.id !== id).map((s, idx) => ({ ...s, no: idx + 1 })));
+  };
+  const importSiswaBulk = (items: Omit<SiswaItem, 'id' | 'no'>[]) => {
+    const formatted: SiswaItem[] = items.map((it, idx) => ({
+      ...it,
+      id: `s-imp-${Date.now()}-${idx}`,
+      no: siswaList.length + idx + 1,
+    }));
+    setSiswaList(prev => [...prev, ...formatted]);
   };
 
-  const deleteExam = (examId: string) => {
-    setExams(prev => prev.filter(e => e.id !== examId));
-    setSubmissions(prev => prev.filter(s => s.examId !== examId));
+  // Perangkat Ajar CRUD
+  const addPerangkatAjar = (item: Omit<PerangkatAjarItem, 'id'>) => {
+    const newItem: PerangkatAjarItem = {
+      ...item,
+      id: `pa-${Date.now()}`,
+    };
+    setPerangkatAjarList(prev => [newItem, ...prev]);
+  };
+  const updatePerangkatAjar = (item: PerangkatAjarItem) => {
+    setPerangkatAjarList(prev => prev.map(p => (p.id === item.id ? item : p)));
+  };
+  const deletePerangkatAjar = (id: string) => {
+    setPerangkatAjarList(prev => prev.filter(p => p.id !== id));
   };
 
-  const togglePublishExam = (examId: string) => {
-    setExams(prev =>
-      prev.map(e => (e.id === examId ? { ...e, isPublished: !e.isPublished } : e))
+  // Bahan Ajar AI CRUD & Kirim ke Siswa
+  const addBahanAjar = (item: Omit<BahanAjarItem, 'id'>) => {
+    const newItem: BahanAjarItem = {
+      ...item,
+      id: `ba-${Date.now()}`,
+    };
+    setBahanAjarList(prev => [newItem, ...prev]);
+  };
+  const updateBahanAjar = (item: BahanAjarItem) => {
+    setBahanAjarList(prev => prev.map(b => (b.id === item.id ? item : b)));
+  };
+  const deleteBahanAjar = (id: string) => {
+    setBahanAjarList(prev => prev.filter(b => b.id !== id));
+  };
+  const toggleKirimKeSiswa = (id: string) => {
+    setBahanAjarList(prev =>
+      prev.map(b => {
+        if (b.id === id) {
+          const nextState = !b.isSentToStudents;
+          return {
+            ...b,
+            isSentToStudents: nextState,
+            sentAt: nextState ? new Date().toLocaleString('id-ID') : undefined,
+          };
+        }
+        return b;
+      })
     );
   };
 
-  // PAI Module Actions
-  const addModule = (modData: Omit<PaiModule, 'id'>) => {
-    const newMod: PaiModule = {
-      ...modData,
-      id: `modul-pai-${Date.now()}`,
+  // Jurnal Guru CRUD
+  const addJurnalGuru = (item: Omit<JurnalGuruItem, 'id'>) => {
+    const newItem: JurnalGuruItem = {
+      ...item,
+      id: `jg-${Date.now()}`,
     };
-    setModules(prev => [newMod, ...prev]);
+    setJurnalGuruList(prev => [newItem, ...prev]);
+  };
+  const updateJurnalGuru = (item: JurnalGuruItem) => {
+    setJurnalGuruList(prev => prev.map(j => (j.id === item.id ? item : j)));
+  };
+  const deleteJurnalGuru = (id: string) => {
+    setJurnalGuruList(prev => prev.filter(j => j.id !== id));
   };
 
-  const deleteModule = (moduleId: string) => {
-    setModules(prev => prev.filter(m => m.id !== moduleId));
+  // Jurnal Sikap CRUD
+  const addJurnalSikap = (item: Omit<JurnalSikapItem, 'id'>) => {
+    const newItem: JurnalSikapItem = {
+      ...item,
+      id: `js-${Date.now()}`,
+    };
+    setJurnalSikapList(prev => [newItem, ...prev]);
+  };
+  const updateJurnalSikap = (item: JurnalSikapItem) => {
+    setJurnalSikapList(prev => prev.map(j => (j.id === item.id ? item : j)));
+  };
+  const deleteJurnalSikap = (id: string) => {
+    setJurnalSikapList(prev => prev.filter(j => j.id !== id));
   };
 
-  // Chat Actions
+  // Absen Siswa CRUD
+  const addAbsenSiswa = (item: Omit<AbsenSiswaItem, 'id' | 'no'>) => {
+    const newItem: AbsenSiswaItem = {
+      ...item,
+      id: `ab-${Date.now()}`,
+      no: absenSiswaList.length + 1,
+    };
+    setAbsenSiswaList(prev => [...prev, newItem]);
+  };
+  const updateAbsenSiswa = (item: AbsenSiswaItem) => {
+    setAbsenSiswaList(prev => prev.map(a => (a.id === item.id ? item : a)));
+  };
+  const deleteAbsenSiswa = (id: string) => {
+    setAbsenSiswaList(prev => prev.filter(a => a.id !== id));
+  };
+
+  // Guru Wali CRUD
+  const addGuruWali = (item: Omit<GuruWaliItem, 'id'>) => {
+    const newItem: GuruWaliItem = {
+      ...item,
+      id: `gw-${Date.now()}`,
+    };
+    setGuruWaliList(prev => [newItem, ...prev]);
+  };
+  const updateGuruWali = (item: GuruWaliItem) => {
+    setGuruWaliList(prev => prev.map(g => (g.id === item.id ? item : g)));
+  };
+  const deleteGuruWali = (id: string) => {
+    setGuruWaliList(prev => prev.filter(g => g.id !== id));
+  };
+
+  // Rekap Nilai CRUD
+  const addRekapNilai = (item: Omit<RekapNilaiItem, 'id' | 'no'>) => {
+    const newItem: RekapNilaiItem = {
+      ...item,
+      id: `rn-${Date.now()}`,
+      no: rekapNilaiList.length + 1,
+    };
+    setRekapNilaiList(prev => [...prev, newItem]);
+  };
+  const updateRekapNilai = (item: RekapNilaiItem) => {
+    setRekapNilaiList(prev => prev.map(r => (r.id === item.id ? item : r)));
+  };
+  const deleteRekapNilai = (id: string) => {
+    setRekapNilaiList(prev => prev.filter(r => r.id !== id));
+  };
+
+  // Pengumuman CRUD
+  const addPengumuman = (item: Omit<PengumumanItem, 'id'>) => {
+    const newItem: PengumumanItem = {
+      ...item,
+      id: `pg-${Date.now()}`,
+    };
+    setPengumumanList(prev => [newItem, ...prev]);
+  };
+  const deletePengumuman = (id: string) => {
+    setPengumumanList(prev => prev.filter(p => p.id !== id));
+  };
+
+  // Chat Actions & Badge State
+  const unreadMessagesCount = currentUser
+    ? chatMessages.filter(m => m.recipientId === currentUser.id && !m.isRead).length
+    : 0;
+
   const sendMessage = (recipientId: string, recipientName: string, message: string) => {
-    if (!currentUser || !message.trim()) return;
-
+    if (!currentUser) return;
     const newMsg: ChatMessage = {
       id: `msg-${Date.now()}`,
       senderId: currentUser.id,
@@ -443,61 +614,119 @@ export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       senderAvatar: currentUser.avatar,
       recipientId,
       recipientName,
-      message: message.trim(),
+      message,
       timestamp: new Date().toISOString(),
       isRead: false,
     };
-
     setChatMessages(prev => [...prev, newMsg]);
   };
 
   const markMessageAsRead = (messageId: string) => {
-    setChatMessages(prev => prev.map(m => m.id === messageId ? { ...m, isRead: true } : m));
+    setChatMessages(prev =>
+      prev.map(m => (m.id === messageId ? { ...m, isRead: true } : m))
+    );
   };
 
-  // User Management
-  const addUser = (userData: Omit<User, 'id'>) => {
-    const newUser: User = {
-      ...userData,
-      id: `user-${Date.now()}`,
-    };
-    setUsers(prev => [...prev, newUser]);
+  const markConversationAsRead = (partnerId: string) => {
+    if (!currentUser) return;
+    setChatMessages(prev => {
+      const hasUnread = prev.some(
+        m => m.senderId === partnerId && m.recipientId === currentUser.id && !m.isRead
+      );
+      if (!hasUnread) return prev;
+      return prev.map(m =>
+        m.senderId === partnerId && m.recipientId === currentUser.id && !m.isRead
+          ? { ...m, isRead: true }
+          : m
+      );
+    });
   };
 
-  const updateUser = (updatedUser: User) => {
-    setUsers(prev => prev.map(u => (u.id === updatedUser.id ? updatedUser : u)));
-    if (currentUser?.id === updatedUser.id) {
-      setCurrentUser(updatedUser);
+  const markAllMessagesAsRead = () => {
+    if (!currentUser) return;
+    setChatMessages(prev => {
+      const hasUnread = prev.some(m => m.recipientId === currentUser.id && !m.isRead);
+      if (!hasUnread) return prev;
+      return prev.map(m =>
+        m.recipientId === currentUser.id && !m.isRead ? { ...m, isRead: true } : m
+      );
+    });
+  };
+
+  const simulateIncomingMessage = (senderRole?: UserRole) => {
+    if (!currentUser) return;
+    if (currentUser.role === 'guru') {
+      const student = users.find(u => u.role === 'siswa') || {
+        id: 'user-siswa-8b',
+        name: 'Siti Nurhaliza Azzahra',
+        role: 'siswa' as UserRole,
+        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+      };
+      const samples = [
+        'Assalamu\'alaikum Pak Guru, mohon penjelasan untuk soal nomor 12 tentang hukum mim sukun.',
+        'Pak Ustadz, apakah tugas resume kisah Nabi Muhammad SAW dikumpulkan besok pagi?',
+        'Izin bertanya Pak Guru, apakah ada jadwal remedial PAI untuk kelas 8 pekan ini?',
+      ];
+      const randomText = samples[Math.floor(Math.random() * samples.length)];
+      const newMsg: ChatMessage = {
+        id: `sim-${Date.now()}`,
+        senderId: student.id,
+        senderName: student.name,
+        senderRole: 'siswa',
+        senderAvatar: student.avatar,
+        recipientId: currentUser.id,
+        recipientName: currentUser.name,
+        message: randomText,
+        timestamp: new Date().toISOString(),
+        isRead: false,
+      };
+      setChatMessages(prev => [...prev, newMsg]);
+    } else {
+      const guru = users.find(u => u.role === 'guru') || {
+        id: 'user-guru-1',
+        name: TARGET_NEW_GURU_NAME,
+        role: 'guru' as UserRole,
+        avatar: TARGET_NEW_GURU_PHOTO,
+      };
+      const samples = [
+        'Wa\'alaikumsalam. Latihan mandiri kamu sangat baik nilainya, istiqamah ya!',
+        'Untuk materi tajwid surah Al-Hujurat ayat 13, perhatikan bacaan Mad Wajib Muttasil.',
+        'Tugas hafalan Juz 30 sudah bapak catat, nilai 95.',
+      ];
+      const randomText = samples[Math.floor(Math.random() * samples.length)];
+      const newMsg: ChatMessage = {
+        id: `sim-${Date.now()}`,
+        senderId: guru.id,
+        senderName: guru.name,
+        senderRole: 'guru',
+        senderAvatar: guru.avatar,
+        recipientId: currentUser.id,
+        recipientName: currentUser.name,
+        message: randomText,
+        timestamp: new Date().toISOString(),
+        isRead: false,
+      };
+      setChatMessages(prev => [...prev, newMsg]);
     }
   };
 
-  const deleteUser = (userId: string) => {
-    setUsers(prev => prev.filter(u => u.id !== userId));
-  };
-
-  const updateSchoolConfig = (config: Partial<SchoolConfig>) => {
-    setSchoolConfig(prev => ({ ...prev, ...config }));
-  };
-
   const resetAllData = () => {
-    localStorage.removeItem(STORAGE_KEYS.USERS);
-    localStorage.removeItem(STORAGE_KEYS.EXAMS);
-    localStorage.removeItem(STORAGE_KEYS.SUBMISSIONS);
-    localStorage.removeItem(STORAGE_KEYS.SCHOOL);
-    localStorage.removeItem(STORAGE_KEYS.MODULES);
-    localStorage.removeItem(STORAGE_KEYS.MESSAGES);
-    localStorage.removeItem(STORAGE_KEYS.ACTIVE_USER);
-
-    setUsers(INITIAL_USERS);
-    setExams(INITIAL_EXAMS);
-    setSubmissions(INITIAL_SUBMISSIONS);
-    setSchoolConfig(INITIAL_SCHOOL_CONFIG);
-    setModules(INITIAL_PAI_MODULES);
+    localStorage.clear();
+    setSchoolProfile(INITIAL_SCHOOL_PROFILE);
+    setGuruList(INITIAL_GURU_LIST);
+    setKelasList(INITIAL_KELAS_LIST);
+    setSiswaList(INITIAL_SISWA_LIST);
+    setPerangkatAjarList(INITIAL_PERANGKAT_AJAR);
+    setBahanAjarList(INITIAL_BAHAN_AJAR);
+    setJurnalGuruList(INITIAL_JURNAL_GURU);
+    setJurnalSikapList(INITIAL_JURNAL_SIKAP);
+    setAbsenSiswaList(INITIAL_ABSEN_SISWA);
+    setGuruWaliList(INITIAL_GURU_WALI);
+    setRekapNilaiList(INITIAL_REKAP_NILAI);
+    setPengumumanList(INITIAL_PENGUMUMAN);
     setChatMessages(INITIAL_CHAT_MESSAGES);
-    setCurrentUser(INITIAL_USERS[2]); // Ahmad Rifai (Siswa 7)
-    setActiveView('dashboard');
-    setActiveTab('beranda');
-    setCurrentExam(null);
+    setUsers(INITIAL_USERS_AUTH);
+    setCurrentUser(INITIAL_USERS_AUTH[0]);
   };
 
   return (
@@ -505,47 +734,94 @@ export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       value={{
         currentUser,
         users,
-        exams,
-        submissions,
-        schoolConfig,
-        modules,
-        chatMessages,
-        activeRole: currentUser?.role || null,
-        activeView,
-        setActiveView,
-        activeTab,
-        setActiveTab,
-        isSidebarOpen,
-        setIsSidebarOpen,
-        currentExam,
-        examAnswers,
-        examDoubtful,
-        examViolations,
-        examStartedAt,
-        lastCompletedSubmission,
+        schoolProfile,
+        guruList,
+        kelasList,
+        siswaList,
+        perangkatAjarList,
+        bahanAjarList,
+        jurnalGuruList,
+        jurnalSikapList,
+        absenSiswaList,
+        guruWaliList,
+        rekapNilaiList,
+        pengumumanList,
+
+        activeGuruMenu,
+        setActiveGuruMenu,
+        activeGuruSubMenu,
+        setActiveGuruSubMenu,
+
+        activeSiswaMenu,
+        setActiveSiswaMenu,
+
+        selectedSemester,
+        setSelectedSemester,
+        selectedGrade,
+        setSelectedGrade,
+
         login,
         loginAsUser,
         logout,
         quickSwitchUser,
-        startExamWithToken,
-        answerQuestion,
-        toggleDoubtful,
-        registerExamViolation,
-        submitExam,
-        exitExamEarly,
-        viewSubmissionDetails,
-        addExam,
-        updateExam,
-        deleteExam,
-        togglePublishExam,
-        addModule,
-        deleteModule,
+        updateCurrentUserProfile,
+
+        updateSchoolProfile,
+        addGuru,
+        updateGuru,
+        deleteGuru,
+        importGuruBulk,
+
+        addKelas,
+        updateKelas,
+        deleteKelas,
+        importKelasBulk,
+
+        addSiswa,
+        updateSiswa,
+        deleteSiswa,
+        importSiswaBulk,
+
+        addPerangkatAjar,
+        updatePerangkatAjar,
+        deletePerangkatAjar,
+
+        addBahanAjar,
+        updateBahanAjar,
+        deleteBahanAjar,
+        toggleKirimKeSiswa,
+
+        addJurnalGuru,
+        updateJurnalGuru,
+        deleteJurnalGuru,
+
+        addJurnalSikap,
+        updateJurnalSikap,
+        deleteJurnalSikap,
+
+        addAbsenSiswa,
+        updateAbsenSiswa,
+        deleteAbsenSiswa,
+
+        addGuruWali,
+        updateGuruWali,
+        deleteGuruWali,
+
+        addRekapNilai,
+        updateRekapNilai,
+        deleteRekapNilai,
+
+        addPengumuman,
+        deletePengumuman,
+
+        chatMessages,
+        unreadMessagesCount,
         sendMessage,
         markMessageAsRead,
-        addUser,
-        updateUser,
-        deleteUser,
-        updateSchoolConfig,
+        markConversationAsRead,
+        markAllMessagesAsRead,
+        simulateIncomingMessage,
+
         resetAllData,
       }}
     >
@@ -554,7 +830,7 @@ export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   );
 };
 
-export const useLms = (): LmsContextType => {
+export const useLms = () => {
   const context = useContext(LmsContext);
   if (!context) {
     throw new Error('useLms must be used within an LmsProvider');

@@ -1,1 +1,42 @@
 @import "tailwindcss";
+
+@layer utilities {
+  /* Glowing Gold & White Animated Calligraphy */
+  @keyframes goldWhiteGlow {
+    0%, 100% {
+      color: #fbbf24;
+      text-shadow: 0 0 12px rgba(251, 191, 36, 0.8), 0 0 24px rgba(245, 158, 11, 0.6);
+      transform: scale(1);
+    }
+    50% {
+      color: #ffffff;
+      text-shadow: 0 0 16px rgba(255, 255, 255, 0.95), 0 0 30px rgba(59, 130, 246, 0.6);
+      transform: scale(1.02);
+    }
+  }
+
+  .animate-gold-white-glow {
+    animation: goldWhiteGlow 3.5s ease-in-out infinite;
+  }
+
+  /* Smooth Marquee Running Text */
+  @keyframes marquee {
+    0% {
+      transform: translateX(100%);
+    }
+    100% {
+      transform: translateX(-100%);
+    }
+  }
+
+  .animate-running-marquee {
+    display: inline-flex;
+    white-space: nowrap;
+    animation: marquee 24s linear infinite;
+    will-change: transform;
+  }
+
+  .animate-running-marquee:hover {
+    animation-play-state: paused;
+  }
+}

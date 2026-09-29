@@ -3,17 +3,26 @@ import { LmsProvider, useLms } from './context/LmsContext';
 import { Header } from './components/common/Header';
 import { Sidebar } from './components/common/Sidebar';
 import { LoginView } from './components/auth/LoginView';
-import { SiswaDashboard } from './components/siswa/SiswaDashboard';
-import { ExamCbtRoom } from './components/siswa/ExamCbtRoom';
-import { ExamResultView } from './components/siswa/ExamResultView';
 import { GuruDashboard } from './components/guru/GuruDashboard';
-import { MateriPaiView } from './components/materi/MateriPaiView';
-import { NilaiView } from './components/nilai/NilaiView';
+import { MenuDataView } from './components/guru/MenuDataView';
+import { PerangkatGuruView } from './components/guru/PerangkatGuruView';
+import { RekapNilaiGuruView } from './components/guru/RekapNilaiGuruView';
+import { MasterkuView } from './components/masterku/MasterkuView';
+import { SiswaDashboard } from './components/siswa/SiswaDashboard';
+import { ProfilSiswaView } from './components/siswa/ProfilSiswaView';
+import { TugasSiswaView } from './components/siswa/TugasSiswaView';
+import { RekapNilaiSiswaView } from './components/siswa/RekapNilaiSiswaView';
 import { PesanView } from './components/pesan/PesanView';
+import { PengaturanAkunView } from './components/common/PengaturanAkunView';
 import { BookOpen } from 'lucide-react';
 
 const AppContent: React.FC = () => {
-  const { currentUser, activeView, activeTab, schoolConfig } = useLms();
+  const {
+    currentUser,
+    activeGuruMenu,
+    activeSiswaMenu,
+    schoolProfile,
+  } = useLms();
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   // If not logged in, display the Login View
@@ -23,23 +32,14 @@ const AppContent: React.FC = () => {
         <main className="flex-1">
           <LoginView />
         </main>
-        <Footer schoolConfig={schoolConfig} />
+        <Footer schoolProfile={schoolProfile} />
       </div>
     );
   }
 
-  // If in CBT Exam Room, render ExamCbtRoom without sidebars/headers to ensure test integrity
-  if (activeView === 'exam-cbt' && currentUser.role === 'siswa') {
-    return (
-      <div className="min-h-screen bg-slate-100 font-sans antialiased select-none">
-        <ExamCbtRoom />
-      </div>
-    );
-  }
-
-  // Authenticated Layout with Sidebar & Top Bar
+  // Authenticated Layout with Sidebar & Header
   return (
-    <div className="min-h-screen bg-slate-50 flex font-sans antialiased text-slate-900 overflow-x-hidden">
+    <div className="min-h-screen bg-slate-100/70 flex font-sans antialiased text-slate-900 overflow-x-hidden">
       {/* Desktop Persistent Sidebar */}
       <div className="hidden lg:block shrink-0 sticky top-0 h-screen z-20">
         <Sidebar />
@@ -63,59 +63,57 @@ const AppContent: React.FC = () => {
         <Header onToggleSidebar={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)} />
 
         <main className="flex-1">
-          {/* Detailed Exam Result View */}
-          {activeView === 'exam-result' ? (
-            <ExamResultView />
-          ) : (
+          {currentUser.role === 'guru' ? (
+            /* --- GURU VIEWS --- */
             <>
-              {/* Tab Navigation Views */}
-              {activeTab === 'beranda' && (
-                <>
-                  {currentUser.role === 'guru' ? <GuruDashboard /> : <SiswaDashboard />}
-                </>
-              )}
-
-              {activeTab === 'materi' && <MateriPaiView />}
-
-              {activeTab === 'ujian' && (
-                <>
-                  {currentUser.role === 'guru' ? <GuruDashboard /> : <SiswaDashboard />}
-                </>
-              )}
-
-              {activeTab === 'nilai' && <NilaiView />}
-
-              {activeTab === 'pesan' && <PesanView />}
+              {activeGuruMenu === 'beranda' && <GuruDashboard />}
+              {activeGuruMenu === 'data' && <MenuDataView />}
+              {activeGuruMenu === 'perangkat' && <PerangkatGuruView />}
+              {activeGuruMenu === 'rekap_nilai' && <RekapNilaiGuruView />}
+              {activeGuruMenu === 'pesan' && <PesanView />}
+              {activeGuruMenu === 'masterku' && <MasterkuView isReadOnly={false} />}
+              {activeGuruMenu === 'pengaturan' && <PengaturanAkunView />}
+            </>
+          ) : (
+            /* --- SISWA VIEWS --- */
+            <>
+              {activeSiswaMenu === 'beranda' && <SiswaDashboard />}
+              {activeSiswaMenu === 'profil_siswa' && <ProfilSiswaView />}
+              {activeSiswaMenu === 'masterku' && <MasterkuView isReadOnly={true} />}
+              {activeSiswaMenu === 'tugas_siswa' && <TugasSiswaView />}
+              {activeSiswaMenu === 'rekap_nilai' && <RekapNilaiSiswaView />}
+              {activeSiswaMenu === 'pesan' && <PesanView />}
+              {activeSiswaMenu === 'pengaturan' && <PengaturanAkunView />}
             </>
           )}
         </main>
 
-        <Footer schoolConfig={schoolConfig} />
+        <Footer schoolProfile={schoolProfile} />
       </div>
     </div>
   );
 };
 
-const Footer: React.FC<{ schoolConfig: { name: string; academicYear: string; currentSemester: string; npsn: string } }> = ({
-  schoolConfig,
+const Footer: React.FC<{ schoolProfile: { name: string; npsn: string } }> = ({
+  schoolProfile,
 }) => {
   return (
-    <footer className="bg-white border-t border-slate-200 py-6 text-xs text-slate-500 print:hidden">
+    <footer className="bg-white border-t border-slate-200 py-5 text-xs text-slate-500 print:hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded-lg bg-emerald-700 text-white flex items-center justify-center font-bold text-xs shadow-2xs">
+          <div className="w-6 h-6 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold text-xs shadow-2xs">
             <BookOpen className="w-3.5 h-3.5" />
           </div>
-          <span className="font-bold text-slate-800">MEDIA PAI</span>
-          <span className="hidden md:inline">• {schoolConfig.name}</span>
+          <span className="font-black text-slate-900">MEDIA PAI</span>
+          <span className="hidden md:inline">• {schoolProfile.name}</span>
         </div>
 
         <div className="flex items-center gap-4 text-[11px] text-slate-400">
-          <span>NPSN: {schoolConfig.npsn}</span>
+          <span>NPSN: {schoolProfile.npsn}</span>
           <span>•</span>
-          <span>T.A {schoolConfig.academicYear} ({schoolConfig.currentSemester})</span>
+          <span>“Guru kreatif Siswa Aktif”</span>
           <span>•</span>
-          <span>Status Server CBT: <strong className="text-emerald-600 font-semibold">Online (Stabil)</strong></span>
+          <span>Status Server: <strong className="text-emerald-600 font-semibold">Online & Aktif</strong></span>
         </div>
       </div>
     </footer>
