@@ -21,13 +21,13 @@ export const RekapNilaiSiswaView: React.FC = () => {
   ) || rekapNilaiList[0];
 
   const renderScore = (val: number) => {
-    const isBelow = val < 75;
+    const isBelow75 = val < 75;
     return (
       <span
-        className={`px-2 py-0.5 rounded font-mono font-bold ${
-          isBelow
-            ? 'text-red-600 font-black bg-red-100 ring-1 ring-red-400'
-            : 'text-slate-900 font-bold'
+        className={`px-2 py-0.5 rounded font-mono transition-colors ${
+          isBelow75
+            ? 'text-red-600 font-bold bg-red-50 ring-1 ring-red-200'
+            : 'text-black font-semibold'
         }`}
       >
         {val}
@@ -89,13 +89,13 @@ export const RekapNilaiSiswaView: React.FC = () => {
         {/* Legend */}
         <div className="flex flex-wrap items-center gap-4 text-xs px-1">
           <span className="font-bold text-slate-600">Ketentuan Nilai:</span>
-          <span className="flex items-center gap-1 text-slate-900 font-bold">
-            <span className="w-3 h-3 rounded-full bg-slate-900 inline-block" />
-            Nilai ≥ 75: Tuntas (Warna Hitam)
+          <span className="flex items-center gap-1.5 text-black font-bold">
+            <span className="w-3 h-3 rounded-full bg-black inline-block shadow-xs" />
+            Nilai ≥ 75: Tuntas (Teks Warna Hitam)
           </span>
-          <span className="flex items-center gap-1 text-red-600 font-bold">
-            <span className="w-3 h-3 rounded-full bg-red-600 inline-block" />
-            Nilai &lt; 75: Remidial (Warna Merah)
+          <span className="flex items-center gap-1.5 text-red-600 font-bold">
+            <span className="w-3 h-3 rounded-full bg-red-600 inline-block shadow-xs" />
+            Nilai &lt; 75: Remidial (Teks Warna Merah)
           </span>
         </div>
 

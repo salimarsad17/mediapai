@@ -184,8 +184,8 @@ export const Header: React.FC<{ onToggleSidebar: () => void }> = ({ onToggleSide
             </button>
           </div>
 
-          {/* User Profile Info */}
-          {currentUser && (
+          {/* User Profile Info - Disembunyikan untuk Guru Pengampu sesuai permintaan */}
+          {currentUser && currentUser.role !== 'guru' && (
             <div className="flex items-center gap-2 pl-2 border-l border-slate-200">
               <div className="w-9 h-9 rounded-xl overflow-hidden ring-2 ring-blue-500/30 shrink-0 bg-slate-100 flex items-center justify-center">
                 <AdaptiveImage
@@ -200,7 +200,7 @@ export const Header: React.FC<{ onToggleSidebar: () => void }> = ({ onToggleSide
                   {currentUser.name}
                 </span>
                 <span className="text-[10px] font-semibold text-blue-600 uppercase">
-                  {currentUser.role === 'guru' ? 'Guru Pengampu' : `Siswa ${currentUser.className || ''}`}
+                  {`Siswa ${currentUser.className || ''}`}
                 </span>
               </div>
             </div>

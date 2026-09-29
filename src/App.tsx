@@ -39,15 +39,15 @@ const AppContent: React.FC = () => {
 
   // Authenticated Layout with Sidebar & Header
   return (
-    <div className="min-h-screen bg-slate-100/70 flex font-sans antialiased text-slate-900 overflow-x-hidden">
+    <div className="min-h-screen bg-slate-100/70 flex font-sans antialiased text-slate-900 overflow-x-hidden print:bg-white print:overflow-visible">
       {/* Desktop Persistent Sidebar */}
-      <div className="hidden lg:block shrink-0 sticky top-0 h-screen z-20">
+      <div className="hidden lg:block shrink-0 sticky top-0 h-screen z-20 print:hidden">
         <Sidebar />
       </div>
 
       {/* Mobile Sidebar Overlay Drawer */}
       {isMobileSidebarOpen && (
-        <div className="lg:hidden fixed inset-0 z-50 flex">
+        <div className="lg:hidden fixed inset-0 z-50 flex print:hidden">
           <div
             className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity"
             onClick={() => setIsMobileSidebarOpen(false)}
@@ -59,10 +59,12 @@ const AppContent: React.FC = () => {
       )}
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 min-h-screen">
-        <Header onToggleSidebar={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)} />
+      <div className="flex-1 flex flex-col min-w-0 min-h-screen print:min-h-0 print:block">
+        <div className="print:hidden">
+          <Header onToggleSidebar={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)} />
+        </div>
 
-        <main className="flex-1">
+        <main className="flex-1 print:p-0">
           {currentUser.role === 'guru' ? (
             /* --- GURU VIEWS --- */
             <>
