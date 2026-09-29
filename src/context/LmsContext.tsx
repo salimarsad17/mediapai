@@ -147,6 +147,17 @@ interface LmsContextType {
 
   // Reset Data
   resetAllData: () => void;
+
+  // Toast Notifications
+  toasts: ToastNotification[];
+  showToast: (message: string, type?: 'success' | 'info' | 'warning' | 'error') => void;
+  removeToast: (id: string) => void;
+}
+
+export interface ToastNotification {
+  id: string;
+  message: string;
+  type: 'success' | 'info' | 'warning' | 'error';
 }
 
 const STORAGE_PREFIX = 'media_pai_smpn2_v1_';
@@ -226,6 +237,20 @@ export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [perangkatAjarList, setPerangkatAjarList] = useState<PerangkatAjarItem[]>(() =>
     loadStored('perangkat_ajar', INITIAL_PERANGKAT_AJAR)
   );
+  const [toasts, setToasts] = useState<ToastNotification[]>([]);
+
+  const removeToast = (id: string) => {
+    setToasts(prev => prev.filter(t => t.id !== id));
+  };
+
+  const showToast = (message: string, type: 'success' | 'info' | 'warning' | 'error' = 'success') => {
+    const id = Date.now().toString() + Math.random().toString(36).slice(2, 6);
+    setToasts(prev => [...prev.slice(-3), { id, message, type }]);
+    setTimeout(() => {
+      removeToast(id);
+    }, 3500);
+  };
+
   const [bahanAjarList, setBahanAjarList] = useState<BahanAjarItem[]>(() =>
     loadStored('bahan_ajar', INITIAL_BAHAN_AJAR)
   );
@@ -823,6 +848,10 @@ export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         simulateIncomingMessage,
 
         resetAllData,
+
+        toasts,
+        showToast,
+        removeToast,
       }}
     >
       {children}

@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 
 export const ExamGradingResults: React.FC = () => {
-  const { submissions, exams, viewSubmissionDetails } = useLms();
+  const { submissions, exams, viewSubmissionDetails, showToast } = useLms();
 
   const [selectedExamId, setSelectedExamId] = useState<string>('all');
   const [selectedGrade, setSelectedGrade] = useState<string>('all');
@@ -58,7 +58,7 @@ export const ExamGradingResults: React.FC = () => {
   // Export CSV
   const handleExportCSV = () => {
     if (filteredSubmissions.length === 0) {
-      alert('Tidak ada data nilai untuk diexport.');
+      showToast('Tidak ada data nilai untuk diexport.', 'warning');
       return;
     }
 

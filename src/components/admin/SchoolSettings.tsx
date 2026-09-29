@@ -3,7 +3,7 @@ import { useLms } from '../../context/LmsContext';
 import { School, Save, RotateCcw, Check, AlertTriangle } from 'lucide-react';
 
 export const SchoolSettings: React.FC = () => {
-  const { schoolConfig, updateSchoolConfig, resetAllData } = useLms();
+  const { schoolConfig, updateSchoolConfig, resetAllData, showToast } = useLms();
 
   const [formData, setFormData] = useState({
     governmentHeader: schoolConfig.governmentHeader || 'PEMERINTAH KABUPATEN WAY KANAN',
@@ -188,11 +188,10 @@ export const SchoolSettings: React.FC = () => {
         <button
           type="button"
           onClick={() => {
-            if (window.confirm('Apakah Anda yakin ingin mereset seluruh data LMS ke bawaan awal?')) {
-              resetAllData();
-            }
+            resetAllData();
+            showToast('Seluruh data demo LMS berhasil direset ke bawaan awal', 'success');
           }}
-          className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold flex items-center gap-1.5 transition"
+          className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 active:scale-95 text-white font-bold flex items-center gap-1.5 transition cursor-pointer shadow-xs"
         >
           <RotateCcw className="w-4 h-4" />
           <span>Reset ke Data Demo Awal</span>

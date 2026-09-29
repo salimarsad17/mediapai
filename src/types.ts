@@ -36,6 +36,16 @@ export interface SchoolProfile {
   website: string;
 }
 
+export interface SchoolDataItem {
+  id: string;
+  key?: string;
+  label: string;
+  nilai: string;
+  kategori: 'Identitas' | 'Legalitas & Izin' | 'Kepemimpinan' | 'Akademik' | 'Sarana & Prasarana' | 'Lokasi & Kontak' | 'Lainnya';
+  keterangan?: string;
+  isCore?: boolean;
+}
+
 export interface GuruItem {
   id: string;
   no: number;

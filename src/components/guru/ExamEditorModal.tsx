@@ -21,7 +21,7 @@ interface ExamEditorModalProps {
 }
 
 export const ExamEditorModal: React.FC<ExamEditorModalProps> = ({ examToEdit, onClose }) => {
-  const { addExam, updateExam, currentUser } = useLms();
+  const { addExam, updateExam, currentUser, showToast } = useLms();
 
   const [title, setTitle] = useState(examToEdit?.title || '');
   const [subject, setSubject] = useState(
@@ -92,7 +92,7 @@ export const ExamEditorModal: React.FC<ExamEditorModalProps> = ({ examToEdit, on
 
   const handleRemoveQuestion = (index: number) => {
     if (questions.length <= 1) {
-      alert('Ujian minimal harus memiliki minimal 1 butir soal.');
+      showToast('Ujian minimal harus memiliki minimal 1 butir soal.', 'warning');
       return;
     }
     setQuestions(prev => prev.filter((_, i) => i !== index));

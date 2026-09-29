@@ -26,6 +26,7 @@ import {
   compressImageFile,
   DEFAULT_AVATAR,
 } from '../../utils/imageUtils';
+import { exportToCsv } from '../../utils/fileExport';
 
 export const MenuDataView: React.FC = () => {
   const {
@@ -50,6 +51,7 @@ export const MenuDataView: React.FC = () => {
     setSelectedSemester,
     selectedGrade,
     setSelectedGrade,
+    showToast,
   } = useLms();
 
   // Filter & Search states
@@ -222,14 +224,38 @@ export const MenuDataView: React.FC = () => {
     input.onchange = (e: any) => {
       const file = e.target?.files?.[0];
       if (file) {
-        alert(`Berhasil mengunggah file ${file.name} untuk pembaruan ${type}. Data telah disinkronkan ke sistem.`);
+        showToast(`Berhasil mengunggah file ${file.name} untuk pembaruan data ${type}. Data telah disinkronkan.`, 'success');
       }
     };
     input.click();
   };
 
   const handleDownloadTemplate = (type: string) => {
-    alert(`Mengunduh format template file Excel/Word untuk ${type}. Silakan lengkapi dan unggah kembali.`);
+    if (type.includes('Siswa')) {
+      exportToCsv(
+        'Format_Template_Import_Siswa.csv',
+        ['NISN', 'Nama Lengkap', 'Kelas', 'Tingkat', 'Gender', 'Status'],
+        [
+          ['0081234567', 'Ahmad Dani Pratama', '7A', '7', 'L', 'Aktif'],
+          ['0087654321', 'Aisyah Putri Rahayu', '7A', '7', 'P', 'Aktif'],
+        ]
+      );
+    } else if (type.includes('Guru')) {
+      exportToCsv(
+        'Format_Template_Data_Guru.csv',
+        ['NIP', 'Nama Guru', 'Mata Pelajaran', 'Golongan', 'Jabatan'],
+        [
+          ['198205142008011015', 'Ust. Sadiqul Alim, S.Pd.I., M.Pd.', 'Pendidikan Agama Islam', 'IV/a', 'Guru Pengampu PAI'],
+        ]
+      );
+    } else {
+      exportToCsv(
+        `Format_Template_${type.replace(/\s+/g, '_')}.csv`,
+        ['No', 'Identitas', 'Keterangan'],
+        [[1, 'Contoh Data 1', 'Keterangan lengkap']]
+      );
+    }
+    showToast(`Format template ${type} (.csv) berhasil diunduh`, 'success');
   };
 
   return (
@@ -461,11 +487,10 @@ export const MenuDataView: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => {
-                            if (confirm(`Yakin hapus data guru ${g.nama}?`)) {
-                              deleteGuru(g.id);
-                            }
+                            deleteGuru(g.id);
+                            showToast(`Data guru ${g.nama} berhasil dihapus`, 'info');
                           }}
-                          className="p-1.5 rounded-lg text-red-600 hover:bg-red-50 transition"
+                          className="p-1.5 rounded-lg text-red-600 hover:bg-red-50 cursor-pointer active:scale-95 transition"
                           title="Hapus Guru"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -650,11 +675,10 @@ export const MenuDataView: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => {
-                              if (confirm(`Yakin hapus kelas ${k.kelas}?`)) {
-                                deleteKelas(k.id);
-                              }
+                              deleteKelas(k.id);
+                              showToast(`Data kelas ${k.kelas} berhasil dihapus`, 'info');
                             }}
-                            className="p-1.5 rounded-lg text-red-600 hover:bg-red-50 transition"
+                            className="p-1.5 rounded-lg text-red-600 hover:bg-red-50 cursor-pointer active:scale-95 transition"
                             title="Hapus Kelas"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -775,11 +799,10 @@ export const MenuDataView: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => {
-                              if (confirm(`Yakin hapus data siswa ${s.nama}?`)) {
-                                deleteSiswa(s.id);
-                              }
+                              deleteSiswa(s.id);
+                              showToast(`Data siswa ${s.nama} berhasil dihapus`, 'info');
                             }}
-                            className="p-1.5 rounded-lg text-red-600 hover:bg-red-50 transition"
+                            className="p-1.5 rounded-lg text-red-600 hover:bg-red-50 cursor-pointer active:scale-95 transition"
                             title="Hapus Siswa"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -870,7 +893,7 @@ export const MenuDataView: React.FC = () => {
                             const dataUrl = await compressImageFile(file, 600, 0.85);
                             setGuruForm({ ...guruForm, foto: dataUrl });
                           } catch (err) {
-                            alert('Gagal memproses berkas foto');
+                            showToast('Gagal memproses berkas foto', 'error');
                           }
                         }
                       }}

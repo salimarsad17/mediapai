@@ -14,6 +14,7 @@ import { TugasSiswaView } from './components/siswa/TugasSiswaView';
 import { RekapNilaiSiswaView } from './components/siswa/RekapNilaiSiswaView';
 import { PesanView } from './components/pesan/PesanView';
 import { PengaturanAkunView } from './components/common/PengaturanAkunView';
+import { ToastContainer } from './components/common/ToastContainer';
 import { BookOpen } from 'lucide-react';
 
 const AppContent: React.FC = () => {
@@ -92,6 +93,8 @@ const AppContent: React.FC = () => {
 
         <Footer schoolProfile={schoolProfile} />
       </div>
+
+      <ToastContainer />
     </div>
   );
 };

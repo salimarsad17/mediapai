@@ -18,6 +18,7 @@ import {
   Award,
 } from 'lucide-react';
 import { RekapNilaiItem } from '../../types';
+import { exportToCsv } from '../../utils/fileExport';
 
 export const RekapNilaiGuruView: React.FC = () => {
   const {
@@ -32,6 +33,7 @@ export const RekapNilaiGuruView: React.FC = () => {
     setSelectedGrade,
     schoolProfile,
     currentUser,
+    showToast,
   } = useLms();
 
   const [selectedParallelClass, setSelectedParallelClass] = useState<string>('Semua');
@@ -107,24 +109,60 @@ export const RekapNilaiGuruView: React.FC = () => {
         rerata,
         semester: selectedSemester,
       });
+      showToast(`Data nilai ${formNilai.nama} berhasil diperbarui`, 'success');
     } else {
       addRekapNilai({
         ...formNilai,
         rerata,
         semester: selectedSemester,
       });
+      showToast(`Data nilai baru untuk ${formNilai.nama} berhasil ditambahkan`, 'success');
     }
     setIsModalOpen(false);
   };
 
   const handleExport = (format: 'Excel' | 'PDF') => {
     if (format === 'PDF') {
-      window.print();
+      handlePrint();
       return;
     }
-    alert(
-      `Mengekspor Buku Rekap Nilai Paralel Kelas (${selectedParallelClass}) Mapel PAI ${selectedSemester} dalam format ${format}. Ketuntasan KKM 75 tercetak otomatis.`
+
+    // Real CSV / Excel export
+    const headers = [
+      'No',
+      'Nama Siswa',
+      'Kelas',
+      'UH1', 'UH2', 'UH3', 'UH4', 'UH5',
+      'Tugas1', 'Tugas2', 'Tugas3', 'Tugas4', 'Tugas5',
+      'Hafalan1', 'Hafalan2', 'Hafalan3', 'Hafalan4', 'Hafalan5',
+      'PTS',
+      'PAS',
+      'Rerata',
+      'KKM',
+      'Status Ketuntasan'
+    ];
+
+    const rows = filteredData.map((d, idx) => [
+      idx + 1,
+      d.nama,
+      d.kelasParalel,
+      d.uh1, d.uh2, d.uh3, d.uh4, d.uh5,
+      d.tgs1, d.tgs2, d.tgs3, d.tgs4, d.tgs5,
+      d.hafalan1, d.hafalan2, d.hafalan3, d.hafalan4, d.hafalan5,
+      d.pts,
+      d.pas,
+      d.rerata,
+      d.kkm,
+      d.rerata >= 75 ? 'Tuntas' : 'Remidial'
+    ]);
+
+    exportToCsv(
+      `Rekap_Nilai_PAI_${selectedParallelClass}_${selectedSemester.replace(/\s+/g, '_')}.csv`,
+      headers,
+      rows
     );
+
+    showToast(`Berhasil mengunduh ${filteredData.length} data Rekap Nilai format Excel / CSV`, 'success');
   };
 
   const handlePrint = () => {
@@ -689,7 +727,14 @@ export const RekapNilaiGuruView: React.FC = () => {
               </div>
               <button
                 type="button"
-                className="py-2 px-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs cursor-pointer"
+                onClick={() => {
+                  if (searchTerm.trim()) {
+                    showToast(`Ditemukan ${filteredData.length} data untuk pencarian "${searchTerm}"`, 'info');
+                  } else {
+                    showToast(`Menampilkan seluruh ${filteredData.length} data siswa`, 'info');
+                  }
+                }}
+                className="py-2 px-3 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold text-xs cursor-pointer shadow-xs transition"
               >
                 Cari
               </button>
@@ -808,11 +853,10 @@ export const RekapNilaiGuruView: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => {
-                              if (confirm(`Yakin hapus nilai ${item.nama}?`)) {
-                                deleteRekapNilai(item.id);
-                              }
+                              deleteRekapNilai(item.id);
+                              showToast(`Data nilai ${item.nama} berhasil dihapus`, 'info');
                             }}
-                            className="p-1 rounded-md text-red-600 hover:bg-red-50"
+                            className="p-1 rounded-md text-red-600 hover:bg-red-50 cursor-pointer active:scale-90 transition"
                             title="Hapus Nilai"
                           >
                             <Trash2 className="w-3.5 h-3.5" />

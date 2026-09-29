@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { useLms } from '../../context/LmsContext';
 import {
   MASTER_QURAN_LIST,
   MASTER_BUKU_PELAJARAN,
@@ -22,10 +23,14 @@ import {
   Bookmark,
   Download,
   Filter,
+  X,
 } from 'lucide-react';
 
 export const MasterkuView: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => {
+  const { showToast } = useLms();
   const [activeTab, setActiveTab] = useState<'quran' | 'hadist' | 'buku' | 'kisah' | 'link'>('quran');
+  const [selectedReadingBook, setSelectedReadingBook] = useState<any | null>(null);
+  const [activeReadingBabIndex, setActiveReadingBabIndex] = useState(0);
 
   // Audio player state
   const [playingSurah, setPlayingSurah] = useState<number | null>(null);
@@ -437,10 +442,12 @@ export const MasterkuView: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = 
                 <div className="pt-3 border-t border-slate-100">
                   <button
                     type="button"
-                    onClick={() =>
-                      alert(`Membuka e-book PDF ${buku.judul} reader interaktif...`)
-                    }
-                    className="w-full py-2.5 px-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer shadow-sm"
+                    onClick={() => {
+                      setSelectedReadingBook(buku);
+                      setActiveReadingBabIndex(0);
+                      showToast(`Membuka buku teks ${buku.judul} kelas ${buku.tingkat}`, 'info');
+                    }}
+                    className="w-full py-2.5 px-3 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer shadow-sm"
                   >
                     <BookOpen className="w-4 h-4" />
                     <span>Baca Buku Digital</span>
@@ -570,6 +577,112 @@ export const MasterkuView: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = 
                 </div>
               </a>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: Interactive Digital Book Reader */}
+      {selectedReadingBook && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-xs">
+          <div className="bg-white rounded-3xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden">
+            {/* Modal Header */}
+            <div className="p-4 sm:p-5 border-b border-slate-200 flex items-center justify-between bg-slate-900 text-white shrink-0">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center font-bold text-white shrink-0">
+                  <BookOpen className="w-5 h-5" />
+                </div>
+                <div className="min-w-0">
+                  <h3 className="text-sm sm:text-base font-bold text-white truncate">
+                    {selectedReadingBook.judul}
+                  </h3>
+                  <p className="text-[11px] text-blue-200">
+                    Edisi Kurikulum Merdeka • Penulis: {selectedReadingBook.penulis}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedReadingBook(null)}
+                className="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 overflow-y-auto flex-1 space-y-6">
+              <div className="flex flex-col sm:flex-row gap-6 items-start pb-6 border-b border-slate-200">
+                <img
+                  src={selectedReadingBook.coverUrl}
+                  alt={selectedReadingBook.judul}
+                  className="w-32 h-44 object-cover rounded-2xl shadow-md shrink-0 border border-slate-200"
+                />
+                <div className="space-y-2">
+                  <div className="inline-block px-2.5 py-1 rounded-lg bg-blue-100 text-blue-800 text-xs font-bold">
+                    Buku Teks Utama Kelas {selectedReadingBook.tingkat}
+                  </div>
+                  <h2 className="text-xl font-black text-slate-900">
+                    {selectedReadingBook.judul}
+                  </h2>
+                  <p className="text-xs text-slate-600 leading-relaxed">
+                    {selectedReadingBook.deskripsi}
+                  </p>
+                  <p className="text-xs text-slate-500 font-semibold pt-1">
+                    Penerbit: Pusat Perbukuan Badan Standar, Kurikulum, dan Asesmen Pendidikan Kemendikbudristek
+                  </p>
+                </div>
+              </div>
+
+              {/* Chapters Navigator */}
+              <div>
+                <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
+                  Pilih Bab Pembahasan
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {selectedReadingBook.daftarBab.map((bab: string, idx: number) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => setActiveReadingBabIndex(idx)}
+                      className={`p-3 rounded-2xl border text-left text-xs font-bold transition flex items-center justify-between cursor-pointer ${
+                        activeReadingBabIndex === idx
+                          ? 'bg-blue-50 border-blue-500 text-blue-700 shadow-xs'
+                          : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                      }`}
+                    >
+                      <span className="truncate pr-2">{bab}</span>
+                      <span className="text-[10px] px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 shrink-0">
+                        Bab {idx + 1}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Chapter Content Preview */}
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+                <span className="text-xs font-bold text-blue-700 block">
+                  Ikhtisar Pembelajaran:
+                </span>
+                <p className="text-xs text-slate-700 leading-relaxed font-sans">
+                  Bab ini membahas materi <strong>{selectedReadingBook.daftarBab[activeReadingBabIndex]}</strong> sesuai alur tujuan pembelajaran (ATP) Kurikulum Merdeka Fase D. Siswa diajak untuk memahami dalil naqli, menghayati nilai budi pekerti luhur, dan menerapkannya dalam kehidupan sehari-hari baik di lingkungan sekolah, keluarga, maupun masyarakat.
+                </p>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 border-t border-slate-200 bg-slate-50 flex items-center justify-between text-xs shrink-0">
+              <span className="text-slate-500">
+                Status: Buku Digital Resmi Terverifikasi Kemendikbudristek
+              </span>
+              <button
+                type="button"
+                onClick={() => setSelectedReadingBook(null)}
+                className="px-5 py-2 rounded-xl bg-slate-900 hover:bg-black text-white font-bold transition cursor-pointer"
+              >
+                Selesai Membaca
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -33,7 +33,7 @@ import {
 } from '../../utils/imageUtils';
 
 export const PengaturanAkunView: React.FC = () => {
-  const { currentUser, updateCurrentUserProfile, resetAllData, schoolProfile } = useLms();
+  const { currentUser, updateCurrentUserProfile, resetAllData, schoolProfile, showToast } = useLms();
 
   const activePassword = currentUser?.password || '123456';
   const roleName = currentUser?.role === 'guru' ? 'Guru PAI' : 'Siswa';
@@ -580,7 +580,7 @@ export const PengaturanAkunView: React.FC = () => {
                           const dataUrl = await compressImageFile(file, 600, 0.85);
                           setAvatar(dataUrl);
                         } catch (err) {
-                          alert('Gagal memproses berkas foto');
+                          showToast('Gagal memproses berkas foto', 'error');
                         }
                       }
                     }}
@@ -631,12 +631,10 @@ export const PengaturanAkunView: React.FC = () => {
           <button
             type="button"
             onClick={() => {
-              if (confirm('Yakin ingin mereset seluruh data kembali ke setelan default awal?')) {
-                resetAllData();
-                alert('Data berhasil direset.');
-              }
+              resetAllData();
+              showToast('Seluruh data sistem berhasil direset ke setelan awal pabrik', 'success');
             }}
-            className="py-2 px-3 rounded-xl bg-red-50 hover:bg-red-100 text-red-700 font-bold text-xs flex items-center gap-1.5 transition cursor-pointer self-start"
+            className="py-2 px-3 rounded-xl bg-red-50 hover:bg-red-100 text-red-700 font-bold text-xs flex items-center gap-1.5 transition cursor-pointer self-start active:scale-95 shadow-xs"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             <span>Reset Data</span>

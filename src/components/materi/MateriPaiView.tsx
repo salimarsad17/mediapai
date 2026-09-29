@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 
 export const MateriPaiView: React.FC = () => {
-  const { currentUser, modules, addModule, deleteModule } = useLms();
+  const { currentUser, modules, addModule, deleteModule, showToast } = useLms();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -232,11 +232,10 @@ export const MateriPaiView: React.FC = () => {
                   type="button"
                   title="Hapus Modul"
                   onClick={() => {
-                    if (window.confirm(`Hapus modul "${mod.title}"?`)) {
-                      deleteModule(mod.id);
-                    }
+                    deleteModule(mod.id);
+                    showToast(`Modul "${mod.title}" berhasil dihapus`, 'info');
                   }}
-                  className="p-2 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition"
+                  className="p-2 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 cursor-pointer active:scale-90 transition"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>

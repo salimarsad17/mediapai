@@ -36,6 +36,7 @@ import {
   isGoogleDriveUrl,
   compressImageFile,
 } from '../../utils/imageUtils';
+import { exportToDoc, exportToCsv } from '../../utils/fileExport';
 
 export const PerangkatGuruView: React.FC = () => {
   const {
@@ -73,13 +74,35 @@ export const PerangkatGuruView: React.FC = () => {
     selectedGrade,
     setSelectedGrade,
     schoolProfile,
+    showToast,
   } = useLms();
 
   // Export handlers
   const handleExportDoc = (type: string, format: 'PDF' | 'Word' | 'Excel') => {
-    alert(
-      `Mengekspor berkas ${type} ${selectedSemester} dalam format .${format.toLowerCase()} untuk ${schoolProfile.name}. File siap dicetak dan diarsipkan.`
-    );
+    const cleanType = type.replace(/\s+/g, '_');
+    const cleanSchool = schoolProfile.name.replace(/\s+/g, '_');
+
+    if (format === 'Word') {
+      exportToDoc(
+        `${cleanType}_${cleanSchool}_${selectedSemester.replace(/\s+/g, '_')}.doc`,
+        `${type} - ${schoolProfile.name}`,
+        `<p>Dokumen resmi <strong>${type}</strong> Kurikulum Merdeka ${selectedSemester}. Disusun oleh Guru Mapel PAI & BP untuk ${schoolProfile.name}.</p>`
+      );
+      showToast(`Berhasil mengunduh dokumen ${type} format Word (.doc)`, 'success');
+      return;
+    } else if (format === 'Excel') {
+      exportToCsv(
+        `${cleanType}_${cleanSchool}.csv`,
+        ['No', 'Nama Dokumen', 'Semester', 'Sekolah', 'Status Kelengkapan'],
+        [[1, type, selectedSemester, schoolProfile.name, 'Lengkap & Terverifikasi']]
+      );
+      showToast(`Berhasil mengunduh dokumen ${type} format Excel (.csv)`, 'success');
+      return;
+    }
+
+    // PDF format
+    showToast(`Mempersiapkan pratinjau cetak PDF dokumen ${type}...`, 'info');
+    window.print();
   };
 
   // Modals state
@@ -310,11 +333,10 @@ export const PerangkatGuruView: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => {
-                        if (confirm(`Yakin hapus perangkat ajar ${p.judul}?`)) {
-                          deletePerangkatAjar(p.id);
-                        }
+                        deletePerangkatAjar(p.id);
+                        showToast(`Perangkat ajar "${p.judul}" berhasil dihapus`, 'info');
                       }}
-                      className="p-1.5 rounded-lg text-red-600 hover:bg-red-50 transition"
+                      className="p-1.5 rounded-lg text-red-600 hover:bg-red-50 cursor-pointer active:scale-95 transition"
                       title="Hapus Perangkat"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -442,11 +464,10 @@ export const PerangkatGuruView: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => {
-                          if (confirm(`Yakin hapus bahan ajar ${b.judul}?`)) {
-                            deleteBahanAjar(b.id);
-                          }
+                          deleteBahanAjar(b.id);
+                          showToast(`Bahan ajar "${b.judul}" berhasil dihapus`, 'info');
                         }}
-                        className="p-2 rounded-xl text-red-600 hover:bg-red-50 transition"
+                        className="p-2 rounded-xl text-red-600 hover:bg-red-50 cursor-pointer active:scale-95 transition"
                         title="Hapus Bahan Ajar"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -527,11 +548,10 @@ export const PerangkatGuruView: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => {
-                        if (confirm(`Yakin hapus jurnal tanggal ${j.hariTanggal}?`)) {
-                          deleteJurnalGuru(j.id);
-                        }
+                        deleteJurnalGuru(j.id);
+                        showToast(`Jurnal tanggal ${j.hariTanggal} berhasil dihapus`, 'info');
                       }}
-                      className="p-1 rounded-lg text-red-600 hover:bg-red-50 text-xs flex items-center gap-1 font-bold"
+                      className="p-1 rounded-lg text-red-600 hover:bg-red-50 text-xs flex items-center gap-1 font-bold cursor-pointer active:scale-95 transition"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                       <span>Hapus Jurnal</span>
@@ -622,11 +642,10 @@ export const PerangkatGuruView: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => {
-                            if (confirm(`Yakin hapus catatan sikap ${s.namaSiswa}?`)) {
-                              deleteJurnalSikap(s.id);
-                            }
+                            deleteJurnalSikap(s.id);
+                            showToast(`Catatan sikap ${s.namaSiswa} berhasil dihapus`, 'info');
                           }}
-                          className="p-1.5 rounded-lg text-red-600 hover:bg-red-50 transition"
+                          className="p-1.5 rounded-lg text-red-600 hover:bg-red-50 cursor-pointer active:scale-95 transition"
                           title="Hapus Catatan"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -801,11 +820,10 @@ export const PerangkatGuruView: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => {
-                        if (confirm(`Yakin hapus catatan bimbingan ${w.namaSiswa}?`)) {
-                          deleteGuruWali(w.id);
-                        }
+                        deleteGuruWali(w.id);
+                        showToast(`Catatan bimbingan ${w.namaSiswa} berhasil dihapus`, 'info');
                       }}
-                      className="p-1 rounded-lg text-red-600 hover:bg-red-50 text-xs font-bold flex items-center gap-1"
+                      className="p-1 rounded-lg text-red-600 hover:bg-red-50 text-xs font-bold flex items-center gap-1 cursor-pointer active:scale-95 transition"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                       <span>Hapus</span>
@@ -1239,7 +1257,7 @@ export const PerangkatGuruView: React.FC = () => {
                             const dataUrl = await compressImageFile(file, 800, 0.85);
                             setWaliForm({ ...waliForm, foto: dataUrl });
                           } catch (err) {
-                            alert('Gagal memproses berkas foto');
+                            showToast('Gagal memproses berkas foto', 'error');
                           }
                         }
                       }}

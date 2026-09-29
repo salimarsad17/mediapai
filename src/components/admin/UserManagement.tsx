@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 
 export const UserManagement: React.FC = () => {
-  const { users, addUser, updateUser, deleteUser, currentUser } = useLms();
+  const { users, addUser, updateUser, deleteUser, currentUser, showToast } = useLms();
 
   const [activeTab, setActiveTab] = useState<'siswa' | 'guru'>('siswa');
   const [selectedGrade, setSelectedGrade] = useState<string>('all');
@@ -94,19 +94,18 @@ export const UserManagement: React.FC = () => {
 
   const handleDelete = (user: User) => {
     if (user.id === currentUser?.id) {
-      alert('Tidak dapat menghapus akun Anda sendiri yang sedang aktif.');
+      showToast('Tidak dapat menghapus akun Anda sendiri yang sedang aktif.', 'error');
       return;
     }
-    if (window.confirm(`Hapus pengguna ${user.name}?`)) {
-      deleteUser(user.id);
-    }
+    deleteUser(user.id);
+    showToast(`Pengguna ${user.name} berhasil dihapus`, 'info');
   };
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!formData.name.trim() || !formData.identifier.trim()) {
-      alert('Nama dan NISN/NIP wajib diisi.');
+      showToast('Nama dan NISN/NIP wajib diisi.', 'warning');
       return;
     }
 
