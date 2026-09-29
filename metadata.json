@@ -1,0 +1,6 @@
+{
+  "name": "Media PAI - Pembelajaran Agama Islam",
+  "description": "Aplikasi Media Pembelajaran & CBT Ujian Pendidikan Agama Islam (PAI) untuk Guru dan Siswa UPT SMPN 2 Rebang Tangkas.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
